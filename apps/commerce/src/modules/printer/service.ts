@@ -176,12 +176,22 @@ export function toLineageDto(entry: any): PrinterModelWithLineage {
       rank: family.rank ?? 0,
     },
     // "Bambu Lab X1 Carbon". The brand is not repeated when the model name
-    // already carries it, so we never render "Prusa Prusa MK4".
-    displayName:
-      brandName.length > 0 && entry.name.startsWith(brandName)
-        ? entry.name
-        : `${brandName} ${entry.name}`.trim(),
+    // already carries it — including when only the first word overlaps, so
+    // "Prusa Research" + "Prusa MK4S" renders as "Prusa MK4S", not
+    // "Prusa Research Prusa MK4S".
+    displayName: composeDisplayName(brandName, entry.name),
   };
+}
+
+/** Joins brand and model without repeating a name the model already carries. */
+export function composeDisplayName(brandName: string, modelName: string): string {
+  if (brandName.length === 0) return modelName;
+  if (modelName.startsWith(brandName)) return modelName;
+
+  const brandFirstWord = brandName.split(" ")[0];
+  if (brandFirstWord && modelName.startsWith(`${brandFirstWord} `)) return modelName;
+
+  return `${brandName} ${modelName}`.trim();
 }
 
 export default PrinterModuleService;

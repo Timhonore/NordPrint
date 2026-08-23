@@ -97,6 +97,13 @@ export default tseslint.config(
     rules: { "no-restricted-syntax": "off" },
   },
 
+  // CommonJS tooling configs.
+  {
+    files: ["**/jest.config.js", "**/*.cjs"],
+    languageOptions: { sourceType: "commonjs" },
+    rules: { "@typescript-eslint/no-require-imports": "off" },
+  },
+
   // Scripts and seeds may log freely
   {
     files: ["**/scripts/**", "**/seed*.ts", "**/*.config.{ts,mjs,js}", "**/vitest.setup.ts"],

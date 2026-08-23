@@ -46,6 +46,8 @@ export interface ParsedSearchTerm {
   readonly colors: readonly string[];
   readonly printerHints: readonly string[];
   readonly flags: readonly string[];
+  /** The token sequence plus synonym substitutions — see `expandSynonyms`. */
+  readonly variants: readonly (readonly string[])[];
 }
 
 const MATERIAL_TOKENS: Record<string, string> = {
@@ -145,6 +147,51 @@ const FLAG_TOKENS = new Set([
 
 const DIAMETERS = new Set([1.75, 2.85, 3.0]);
 
+/**
+ * Danish customers mix languages freely: "hardened nozzle" and "hærdet dyse"
+ * mean the same thing and both must find the same product. Each entry expands
+ * to the other spellings so the provider can match on any of them.
+ */
+const SYNONYMS: Record<string, string[]> = {
+  hardened: ["hærdet", "haerdet"],
+  hærdet: ["hardened"],
+  haerdet: ["hardened", "hærdet"],
+  nozzle: ["dyse"],
+  dyse: ["nozzle"],
+  dryer: ["tørrer", "toerrer", "tørring"],
+  tørrer: ["dryer"],
+  toerrer: ["dryer", "tørrer"],
+  plate: ["plade", "byggeplade"],
+  plade: ["plate"],
+  spool: ["spole"],
+  spole: ["spool"],
+  storage: ["opbevaring"],
+  opbevaring: ["storage"],
+  tool: ["værktøj", "vaerktoej"],
+  "værktøj": ["tool"],
+  hotend: ["hot-end", "varmeblok"],
+  brass: ["messing"],
+  messing: ["brass"],
+};
+
+/**
+ * Every spelling of the query worth matching: the tokens as typed, plus one
+ * variant per synonym substitution. The caller turns these into LIKE patterns.
+ */
+function expandSynonyms(tokens: readonly string[]): string[][] {
+  const variants: string[][] = [[...tokens]];
+
+  tokens.forEach((token, index) => {
+    for (const replacement of SYNONYMS[token] ?? []) {
+      const variant = [...tokens];
+      variant[index] = replacement;
+      variants.push(variant);
+    }
+  });
+
+  return variants;
+}
+
 export function parseSearchTerm(raw: string): ParsedSearchTerm {
   const text = raw.trim().replace(/\s+/g, " ");
   const tokens = text
@@ -201,7 +248,14 @@ export function parseSearchTerm(raw: string): ParsedSearchTerm {
     colors: [...new Set(colors)],
     printerHints: [...new Set(printerHints)],
     flags: [...new Set(flags)],
+    variants: expandSynonyms(tokens),
   };
+}
+
+/** SQL `LIKE` patterns covering every spelling of the query. */
+export function toLikePatterns(term: ParsedSearchTerm): string[] {
+  if (term.tokens.length === 0) return [];
+  return [...new Set(term.variants.map((variant) => `%${variant.join("%")}%`))];
 }
 
 /** Builds a PostgreSQL `websearch_to_tsquery`-safe expression. */
