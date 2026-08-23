@@ -1,0 +1,45 @@
+{
+  "name": "@nordprint/commerce-backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "NordPrint commerce backend — Medusa v2 med filament-, printer- og kompatibilitetsmoduler.",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "medusa build",
+    "start": "medusa start",
+    "dev": "medusa develop",
+    "seed": "medusa exec ./src/scripts/seed.ts",
+    "migrate": "medusa db:migrate",
+    "typecheck": "tsc --noEmit",
+    "test": "TEST_TYPE=unit NODE_OPTIONS=--experimental-vm-modules jest --silent --runInBand --forceExit --passWithNoTests",
+    "test:integration": "TEST_TYPE=integration:http NODE_OPTIONS=--experimental-vm-modules jest --runInBand --forceExit --passWithNoTests",
+    "test:modules": "TEST_TYPE=integration:modules NODE_OPTIONS=--experimental-vm-modules jest --runInBand --forceExit --passWithNoTests"
+  },
+  "dependencies": {
+    "@medusajs/admin-sdk": "2.19.0",
+    "@medusajs/cli": "2.19.0",
+    "@medusajs/framework": "2.19.0",
+    "@medusajs/medusa": "2.19.0",
+    "@nordprint/commerce": "workspace:*",
+    "@nordprint/config": "workspace:*",
+    "@nordprint/types": "workspace:*"
+  },
+  "devDependencies": {
+    "@medusajs/test-utils": "2.19.0",
+    "@swc/core": "^1.7.28",
+    "@swc/helpers": "^0.5.23",
+    "@swc/jest": "^0.2.36",
+    "@types/jest": "^29.5.13",
+    "@types/node": "^22.10.0",
+    "@types/react": "^18.3.2",
+    "@types/react-dom": "^18.3.0",
+    "jest": "^29.7.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3",
+    "vite": "^5.4.14"
+  }
+}

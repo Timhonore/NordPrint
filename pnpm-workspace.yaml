@@ -7,3 +7,7 @@ onlyBuiltDependencies:
   - "esbuild"
   - "sharp"
   - "unrs-resolver"
+  - "@swc/core"
+  - "@medusajs/telemetry"
+  - "msgpackr-extract"
+  - "protobufjs"
