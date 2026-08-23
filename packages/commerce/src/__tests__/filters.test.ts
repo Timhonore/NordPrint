@@ -43,6 +43,13 @@ describe("parseProductQuery", () => {
     expect(query.priceMax).toBe(400);
   });
 
+  it("parses the route's scope filters", () => {
+    // Scope comes from the route (/filament, a category page), not the customer.
+    const query = parseProductQuery({ kind: "filament", kategori: "filament-pla" });
+    expect(query.kind).toBe("filament");
+    expect(query.categoryHandle).toBe("filament-pla");
+  });
+
   it("clamps pagination to sane values", () => {
     expect(parseProductQuery({ side: "0" }).page).toBe(1);
     expect(parseProductQuery({ side: "-4" }).page).toBe(1);
@@ -67,6 +74,12 @@ describe("serializeProductQuery", () => {
     expect(reparsed.sort).toBe("price_per_kg_asc");
     expect(reparsed.page).toBe(2);
     expect(reparsed.amsCompatible).toBe(true);
+  });
+
+  it("never emits scope filters — a category page owns its scope", () => {
+    const query = parseProductQuery({ kind: "filament", kategori: "filament-pla", material: "pla" });
+    const search = serializeProductQuery(query);
+    expect(search).toBe("material=pla");
   });
 
   it("omits defaults so canonical URLs stay clean", () => {

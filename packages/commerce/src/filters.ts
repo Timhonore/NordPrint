@@ -74,10 +74,19 @@ export function parseProductQuery(
   );
 
   const q = Array.isArray(params.q) ? params.q[0] : params.q;
+  const kind = Array.isArray(params.kind) ? params.kind[0] : params.kind;
+  const categoryHandle = Array.isArray(params.categoryHandle)
+    ? params.categoryHandle[0]
+    : (params.categoryHandle ?? (Array.isArray(params.kategori) ? params.kategori[0] : params.kategori));
 
   const query: ProductQuery = {
     ...defaults,
     ...(q ? { q: q.trim() } : {}),
+    // Scope filters. These come from the route rather than from the customer,
+    // which is why they are never emitted by `serializeProductQuery` — a
+    // category page owns its scope, it is not a removable chip.
+    ...(kind ? { kind } : {}),
+    ...(categoryHandle ? { categoryHandle } : {}),
     material: parseList(params.material).filter((v): v is FilamentMaterial => MATERIAL_SET.has(v)),
     finish: parseList(params.finish).filter((v): v is FilamentFinish => FINISH_SET.has(v)),
     brand: parseList(params.brand),
