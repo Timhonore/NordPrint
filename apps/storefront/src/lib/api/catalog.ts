@@ -5,6 +5,7 @@ import type {
   ProductDetail,
   ProductQuery,
   ProductSearchResult,
+  ProductSummary,
   SearchSuggestionResult,
 } from "@nordprint/types";
 import { serializeProductQuery } from "@nordprint/commerce";
@@ -145,6 +146,20 @@ export interface ShopSettings {
 export async function fetchSettings(): Promise<ShopSettings | null> {
   const result = await apiFetch<ShopSettings>("/store/nordprint/settings", { revalidate: 300 });
   return result.ok ? result.data : null;
+}
+
+/**
+ * Bulk product lookup by handle, for customer-assembled lists (favourites,
+ * recently viewed). Unlike `fetchComparison` it is not capped at the
+ * comparison limit.
+ */
+export async function fetchProductsByHandle(handles: string[]): Promise<ProductSummary[]> {
+  if (handles.length === 0) return [];
+  const result = await apiFetch<{ products: ProductSummary[] }>(
+    `/store/nordprint/products?handles=${encodeURIComponent(handles.join(","))}`,
+    { revalidate: 60, tags: [CACHE_TAGS.catalog] }
+  );
+  return orFallback(result, { products: [] }).products;
 }
 
 export async function fetchComparison(handles: string[]): Promise<ProductDetail[]> {
