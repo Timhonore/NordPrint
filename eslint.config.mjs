@@ -70,6 +70,8 @@ export default tseslint.config(
       ...reactHooks.configs.recommended.rules,
       ...nextPlugin.configs.recommended.rules,
       ...nextPlugin.configs["core-web-vitals"].rules,
+      // App Router only — there is no /pages directory to validate against.
+      "@next/next/no-html-link-for-pages": "off",
     },
   },
 
@@ -93,7 +95,7 @@ export default tseslint.config(
   },
 
   {
-    files: ["packages/commerce/src/money.ts"],
+    files: ["packages/commerce/src/money.ts", "packages/ui/src/price.tsx"],
     rules: { "no-restricted-syntax": "off" },
   },
 

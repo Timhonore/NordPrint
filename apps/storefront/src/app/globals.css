@@ -1,0 +1,208 @@
+@import "tailwindcss";
+
+/* The shared UI package ships source, so Tailwind has to scan it too. */
+@source "../../../../packages/ui/src";
+
+/**
+ * NordPrint design tokens.
+ *
+ * The visual language borrows from the tools our customers already use: CAD
+ * viewports, slicer panels, technical datasheets. That means a restrained,
+ * near-neutral surface, one confident accent, monospace for anything that is
+ * a measurement, and a coordinate grid instead of decorative gradients.
+ */
+@theme {
+  /* — Surfaces ——————————————————————————————————————————————— */
+  --color-canvas: #f4f6f8;
+  --color-surface: #ffffff;
+  --color-surface-muted: #eef1f4;
+  --color-surface-inverse: #0d1117;
+
+  /* — Text ———————————————————————————————————————————————————— */
+  --color-ink: #0d1117;
+  --color-ink-soft: #4d5966;
+  --color-ink-faint: #77828d;
+  --color-ink-inverse: #f4f6f8;
+
+  /* — Lines —————————————————————————————————————————————————— */
+  --color-line: #dfe4e9;
+  --color-line-strong: #c3ccd5;
+
+  /* — Accent: nordic blue, the only saturated colour in the UI chrome —— */
+  --color-accent: #1f6feb;
+  --color-accent-strong: #1a5ac2;
+  --color-accent-soft: #e8f0fe;
+
+  /* — Semantics. Never the only carrier of meaning. ————————————— */
+  --color-positive: #1a7f5a;
+  --color-caution: #b45309;
+  --color-negative: #c02b2b;
+  --color-amber: #d97706;
+
+  /* — Type —————————————————————————————————————————————————— */
+  --font-sans:
+    "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
+  --font-mono:
+    ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, "Liberation Mono", monospace;
+
+  /* — Rhythm ————————————————————————————————————————————————— */
+  --radius-lg: 0.625rem;
+  --radius-xl: 0.875rem;
+
+  --spacing-13: 3.25rem;
+
+  /* — Motion. Short and functional; nothing bounces. ——————————— */
+  --animate-rise: rise 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-fade: fade 0.18s ease-out;
+  --animate-slide-in: slide-in 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: none;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Motion is a preference, not a default. */
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* One consistent focus ring everywhere, including inside third-party markup. */
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background-color: var(--color-accent);
+    color: #fff;
+  }
+
+  /* Numbers in a shop are compared, so they line up. */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer components {
+  /**
+   * The coordinate grid: the build plate motif that runs through the brand.
+   * A 1 mm-style grid, faint enough to sit behind content.
+   */
+  .grid-plate {
+    background-image:
+      linear-gradient(to right, color-mix(in srgb, var(--color-line) 60%, transparent) 1px, transparent 1px),
+      linear-gradient(to bottom, color-mix(in srgb, var(--color-line) 60%, transparent) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+
+  .grid-plate-inverse {
+    background-image:
+      linear-gradient(to right, rgb(255 255 255 / 0.06) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(255 255 255 / 0.06) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+
+  /**
+   * Layer lines: the horizontal striping of a printed wall. Used as a subtle
+   * texture on dark panels.
+   */
+  .layer-lines {
+    background-image: repeating-linear-gradient(
+      to bottom,
+      rgb(255 255 255 / 0.045) 0px,
+      rgb(255 255 255 / 0.045) 1px,
+      transparent 1px,
+      transparent 6px
+    );
+  }
+
+  /* Page container. One definition, used by every route. */
+  .container-page {
+    margin-inline: auto;
+    width: 100%;
+    max-width: 84rem;
+    padding-inline: 1rem;
+  }
+
+  @media (min-width: 768px) {
+    .container-page {
+      padding-inline: 1.5rem;
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .container-page {
+      padding-inline: 2rem;
+    }
+  }
+
+  /* Skip link: visible only once it has focus. */
+  .skip-link {
+    position: fixed;
+    top: 0.75rem;
+    left: 0.75rem;
+    z-index: 100;
+    transform: translateY(-200%);
+    border-radius: var(--radius-lg);
+    background: var(--color-ink);
+    color: #fff;
+    padding: 0.625rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: transform 0.15s ease-out;
+  }
+
+  .skip-link:focus {
+    transform: none;
+  }
+}

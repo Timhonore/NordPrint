@@ -11,3 +11,14 @@ onlyBuiltDependencies:
   - "@medusajs/telemetry"
   - "msgpackr-extract"
   - "protobufjs"
+
+# A single React type version across the workspace.
+#
+# Without this, pnpm resolves Next's `react` peer to the React 18 types that
+# apps/commerce needs for Medusa admin extensions, and the storefront ends up
+# with two structurally different `ReactNode` types in one program — which
+# makes even `<Suspense>` fail to typecheck. The runtime React versions stay
+# independent; only the types are pinned.
+overrides:
+  "@types/react": "19.2.18"
+  "@types/react-dom": "19.2.4"
