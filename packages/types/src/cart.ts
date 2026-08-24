@@ -34,6 +34,11 @@ export interface CartSummary {
   readonly itemCount: number;
   readonly subtotal: Money;
   readonly discountTotal: Money;
+  /**
+   * `null` until a shipping method is chosen. Medusa reports 0 in that case,
+   * and 0 means "unknown", not "free" — showing "Gratis" before the customer
+   * has picked anything is a promise the order confirmation would break.
+   */
   readonly shippingTotal: Money | null;
   readonly taxTotal: Money;
   readonly total: Money;

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   calculateDiscountPercent,
+  calculateIncludedVat,
   calculateMargin,
   calculatePricePerKg,
   formatPricePerKg,
@@ -103,5 +104,29 @@ describe("formatSpoolWeight", () => {
     expect(formatSpoolWeight(750)).toBe("750 g");
     expect(formatSpoolWeight(null)).toBeNull();
     expect(formatSpoolWeight(0)).toBeNull();
+  });
+});
+
+describe("calculateIncludedVat", () => {
+  it("trækker momsen ud af en momsinklusiv pris", () => {
+    // 189 kr inkl. 25 % moms = 151,20 netto + 37,80 moms.
+    expect(calculateIncludedVat(money(18900, "DKK"), 0.25, true)).toEqual(money(3780, "DKK"));
+  });
+
+  it("giver null, når priserne ikke er momsinklusive", () => {
+    expect(calculateIncludedVat(money(18900, "DKK"), 0.25, false)).toBeNull();
+  });
+
+  it("giver null ved en meningsløs momssats", () => {
+    expect(calculateIncludedVat(money(18900, "DKK"), 0, true)).toBeNull();
+    expect(calculateIncludedVat(money(18900, "DKK"), Number.NaN, true)).toBeNull();
+  });
+
+  it("netto plus moms giver bruttobeløbet igen", () => {
+    const brutto = money(22533, "DKK");
+    const moms = calculateIncludedVat(brutto, 0.25, true);
+    expect(moms).not.toBeNull();
+    // Ingen øre må forsvinde i afrundingen.
+    expect(Math.round(brutto.amount - moms!.amount) + moms!.amount).toBe(brutto.amount);
   });
 });

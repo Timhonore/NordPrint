@@ -286,7 +286,11 @@ export function MiniCart(): React.JSX.Element {
                     <div className="flex justify-between">
                       <dt className="text-ink-soft">Fragt</dt>
                       <dd className="tabular-nums text-ink-soft">
-                        {cart.freeShipping.qualified ? "Gratis" : "Beregnes ved checkout"}
+                        {cart.shippingTotal === null
+                          ? "Beregnes ved checkout"
+                          : cart.shippingTotal.amount === 0
+                            ? "Gratis"
+                            : formatMoney(cart.shippingTotal)}
                       </dd>
                     </div>
                     <div className="flex justify-between border-t border-line pt-2 text-base font-semibold">

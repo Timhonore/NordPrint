@@ -81,6 +81,42 @@ class CompatibilityModuleService extends MedusaService({
     return rows.map(toRuleDto);
   }
 
+  /**
+   * Every rule on these subjects, for the admin.
+   *
+   * Unlike `listCompatiblePrinterTargets` this returns the rule id and the
+   * subject, because the admin needs to be able to delete a specific rule —
+   * and "delete the rule for the X1C" is not expressible without its id.
+   */
+  async listRulesForAdmin(subjectIds: string[]): Promise<
+    {
+      id: string;
+      subjectType: string;
+      subjectId: string;
+      targetType: string;
+      targetId: string;
+      status: string;
+      note: string | null;
+    }[]
+  > {
+    if (subjectIds.length === 0) return [];
+
+    const rows = await this.listCompatibilityRules(
+      { subject_id: subjectIds },
+      { order: { target_type: "ASC" } }
+    );
+
+    return rows.map((row) => ({
+      id: row.id,
+      subjectType: row.subject_type,
+      subjectId: row.subject_id,
+      targetType: row.target_type,
+      targetId: row.target_id,
+      status: row.status,
+      note: row.note ?? null,
+    }));
+  }
+
   /** Which printers a product is explicitly known to fit. */
   async listCompatiblePrinterTargets(
     subjectIds: string[]

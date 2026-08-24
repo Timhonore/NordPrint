@@ -18,7 +18,10 @@ export function AccountNav(): React.JSX.Element {
   const pathname = usePathname();
 
   return (
-    <nav aria-label="Kontonavigation">
+    // min-w-0: et grid-barn har som standard min-width:auto og kan derfor
+    // ikke krympe under sit indhold. Uden den skubber den vandrette
+    // scroll-række hele siden 150 px ud på en telefon.
+    <nav aria-label="Kontonavigation" className="min-w-0">
       <ul className="-mx-4 flex gap-1 overflow-x-auto px-4 pb-2 lg:mx-0 lg:flex-col lg:overflow-visible lg:px-0 lg:pb-0">
         {LINKS.map((link) => {
           const active =

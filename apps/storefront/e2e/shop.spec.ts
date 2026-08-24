@@ -38,6 +38,78 @@ test.describe("Forsiden", () => {
   });
 });
 
+/**
+ * Hele butikken på en telefon.
+ *
+ * Den her findes, fordi ovenstående test kun dækkede forsiden — og
+ * /konto/log-ind skubbede siden 157 px ud, uden at nogen opdagede det.
+ * Et enkelt grid-barn uden `min-w-0` er nok, og fejlen er usynlig på en
+ * bred skærm.
+ */
+test.describe("Mobil", () => {
+  const RUTER = [
+    "/",
+    "/filament",
+    "/filament/pla",
+    "/produkter",
+    "/produkt/nordprint-pla-basic",
+    "/kurv",
+    "/checkout",
+    "/find-filament",
+    "/sammenlign",
+    "/soeg?q=pla",
+    "/reservedele",
+    "/tilbehoer",
+    "/guides",
+    "/tilbud",
+    "/shop-efter-printer",
+    "/konto",
+    "/konto/log-ind",
+    "/konto/ordrer",
+    "/konto/favoritter",
+    "/levering",
+    "/kontakt",
+    "/privatliv",
+  ];
+
+  test("ingen side skubber layoutet ud til siden", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "mobil-360", "Kun relevant på den smalle viewport.");
+
+    const brudte: string[] = [];
+
+    for (const rute of RUTER) {
+      await page.goto(rute, { waitUntil: "domcontentloaded" });
+
+      // Nogle ruter omdirigerer (tom kurv → /kurv, /konto → login), og en
+      // måling midt i en navigation river konteksten væk under sig.
+      await page.waitForLoadState("load");
+      await expect(page.locator("main")).toBeVisible();
+
+      const over = await page.evaluate(
+        () => document.documentElement.scrollWidth - document.documentElement.clientWidth
+      );
+      if (over > 1) brudte.push(`${rute} (+${over}px)`);
+    }
+
+    expect(brudte, `Vandret overløb: ${brudte.join(", ")}`).toEqual([]);
+  });
+
+  test("hjertet på et produktkort er stort nok til en tommelfinger", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "mobil-360", "Kun relevant på den smalle viewport.");
+
+    await page.goto("/filament");
+
+    // WCAG 2.2 sætter grænsen ved 24 px, Apple og Google anbefaler 44.
+    // Et hjerte, man rammer ved siden af, gemmer den forkerte vare.
+    const knap = page.getByRole("button", { name: /som favorit/i }).first();
+    const box = await knap.boundingBox();
+
+    expect(box).not.toBeNull();
+    expect(box!.height).toBeGreaterThanOrEqual(44);
+    expect(box!.width).toBeGreaterThanOrEqual(44);
+  });
+});
+
 test.describe("Katalog", () => {
   test("filtrerer i URL'en og kan deles", async ({ page }) => {
     await page.goto("/filament");
@@ -121,7 +193,9 @@ test.describe("Kurv", () => {
 
     await page.goto("/kurv");
     await expect(page.getByRole("heading", { name: "Din kurv" })).toBeVisible();
-    await expect(page.getByText("Ordreoversigt")).toBeVisible();
+    // Rolle frem for tekst: den samme streng står også i RSC-payloadet i et
+    // <script>-tag, og en ren tekstsøgning rammer begge.
+    await expect(page.getByRole("heading", { name: "Ordreoversigt" })).toBeVisible();
 
     // Fri fragt-måleren er en konfigureret grænse, ikke en hardcoded tekst.
     await expect(page.getByText(/fri fragt/i).first()).toBeVisible();
@@ -353,5 +427,78 @@ test.describe("Konto", () => {
     // Samme besked uanset om e-mailen findes: alt andet er en gratis
     // brugernavnsliste for den, der spørger.
     await expect(page.getByText("E-mail eller adgangskode passer ikke.")).toBeVisible();
+  });
+});
+
+test.describe("Anmeldelser", () => {
+  test.skip(({ viewport }) => (viewport?.width ?? 0) < 1024, "Kun desktop");
+
+  test("gæster kan ikke anmelde — og bliver bedt om at logge ind", async ({ page }) => {
+    await page.goto("/produkt/nordprint-pla-basic");
+
+    const afsnit = page.locator("section[aria-labelledby=anmeldelser]");
+    await expect(afsnit).toContainText("for at skrive en anmeldelse");
+    await expect(afsnit.getByRole("button", { name: /skriv en anmeldelse/i })).toHaveCount(0);
+  });
+
+  test("en indsendt anmeldelse vises ikke, før den er godkendt", async ({ page }) => {
+    const email = `anmelder-${Date.now()}@nordprint-test.dk`;
+    const overskrift = `E2E ${Date.now()}`;
+
+    await page.goto("/konto/log-ind?opret");
+    await page.getByLabel("Fornavn").fill("Anmelder");
+    await page.getByLabel("Efternavn").fill("Test");
+    await page.getByLabel("E-mail").fill(email);
+    await page.getByLabel("Adgangskode").fill("Hemmeligt123");
+    await page
+      .getByRole("button", { name: /^opret konto$/i })
+      .last()
+      .click();
+    await expect(page).toHaveURL(/\/konto$/, { timeout: 20_000 });
+
+    await page.goto("/produkt/nordprint-pla-basic");
+    await page.getByRole("button", { name: /skriv en anmeldelse/i }).click();
+
+    // Radioen er sr-only inde i sit label — brugeren klikker på label'et.
+    await page
+      .locator("label")
+      .filter({ hasText: /^4 ud af 5$/ })
+      .click();
+    await page.getByLabel(/overskrift/i).fill(overskrift);
+    await page
+      .locator("#review-body")
+      .fill("Kørte fint på en A1 uden fejlprint. Diameteren virker jævn hele spolen igennem.");
+    await page.getByRole("button", { name: /send anmeldelse/i }).click();
+
+    await expect(page.locator("section[aria-labelledby=anmeldelser]")).toContainText(
+      "sendt til gennemlæsning"
+    );
+
+    // Det vigtigste i hele testen: den må ikke være publiceret.
+    await page.reload();
+    await expect(page.locator("section[aria-labelledby=anmeldelser]")).not.toContainText(
+      overskrift
+    );
+  });
+
+  test("for kort tekst afvises, før den sendes", async ({ page }) => {
+    const email = `kort-${Date.now()}@nordprint-test.dk`;
+
+    await page.goto("/konto/log-ind?opret");
+    await page.getByLabel("Fornavn").fill("Kort");
+    await page.getByLabel("E-mail").fill(email);
+    await page.getByLabel("Adgangskode").fill("Hemmeligt123");
+    await page
+      .getByRole("button", { name: /^opret konto$/i })
+      .last()
+      .click();
+    await expect(page).toHaveURL(/\/konto$/, { timeout: 20_000 });
+
+    await page.goto("/produkt/nordprint-pla-basic");
+    await page.getByRole("button", { name: /skriv en anmeldelse/i }).click();
+    await page.locator("#review-body").fill("Fin nok");
+    await page.getByRole("button", { name: /send anmeldelse/i }).click();
+
+    await expect(page.getByText("Skriv lidt mere — mindst 10 tegn.")).toBeVisible();
   });
 });

@@ -167,6 +167,10 @@ dækningsbidrag og margin, og de tre sidste beregnes centralt i
 
 Kolonner: `sku`, `ean`, `stock`, `cost_price`, `sale_price`.
 
+Priserne er i **kroner**, ikke øre — filen skrives i Excel af et menneske, og
+`102,50` er det, de taster. Parseren accepterer dansk decimalkomma og
+tusindtalsseparator (`1.250,00`); internt bliver alt til øre med det samme.
+
 Parseren følger RFC 4180 — citationstegn, escaped citationstegn, semikolon
 til dansk Excel, BOM. Hele filen valideres, **før** noget skrives, og
 importen viser en preview:

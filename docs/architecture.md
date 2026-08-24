@@ -170,6 +170,31 @@ renderes på serveren — så de er de samme på telefonen og på computeren.
 | `GET /store/nordprint/me/data-export`       | Alt, vi har registreret: kunde, adresser, ordrer, printere, favoritter, anmeldelser. Samles i backenden, fordi kun den kender alle moduler, der gemmer persondata.                  |
 | `POST /store/nordprint/me/deletion-request` | Registrerer anmodningen. Bevidst en _anmodning_: bogføringsloven kræver fakturaer i fem år, så ordrehistorik skal anonymiseres i stedet — det er en vurdering, et menneske træffer. |
 
+## Admin
+
+Medusa Admin er grundlaget; NordPrint lægger til, hvor Medusas generiske
+modeller ikke rækker.
+
+| Skærm                  | Hvad                                                                                                                                                                         |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| NordPrint (dashboard)  | Omsætning i dag, ordrer, gennemsnitsordre, topprodukter, lavt lager, seneste ordrer. Alle tal er rigtige aggregater — der er ingen prøvedata og ingen pladsholderdiagrammer. |
+| Marginer               | Salgspris, indkøbspris, dækningsbidrag og margin pr. variant, med redigerbar indkøbspris. Kostprisen findes kun her.                                                         |
+| Anmeldelser            | Moderationskø. Butikken viser kun `approved`, så en upasset kø betyder ingen anmeldelser — aldrig ukontrollerede.                                                            |
+| Lagerimport            | CSV med preview før skrivning.                                                                                                                                               |
+| Filament-widget        | Databladet på produktsiden.                                                                                                                                                  |
+| Kompatibilitets-widget | Regler mod printer, serie eller producent.                                                                                                                                   |
+
+To ting er værd at kende:
+
+**Priserne i importfilen er kroner, ikke øre.** Filen skrives i Excel af et
+menneske, og `102,50` er det, de taster. Previewet formaterer værdierne
+tilbage, før de vises — en diff, der siger "12000 → 940000", inviterer til en
+100×-fejl.
+
+**En betinget kompatibilitetsregel skal have en note.** Både backend og
+formular afviser en uden. "Passer med forbehold" uden at sige hvilket
+forbehold er værre end at sige ingenting.
+
 ## Udbyder-abstraktioner
 
 Betaling, fragt, e-mail, filer og søgning er grænseflader, ikke leverandører.
@@ -201,9 +226,9 @@ containeren genstartes og billederne er væk.
 
 | Type        | Antal | Hvad                                                                                     |
 | ----------- | ----- | ---------------------------------------------------------------------------------------- |
-| Unit        | 100   | Priser, penge, filtre, søgeparsing, anbefalingsregler, kompatibilitet, JSON-LD-escaping. |
+| Unit        | 101   | Priser, penge, filtre, søgeparsing, anbefalingsregler, kompatibilitet, JSON-LD-escaping. |
 | Integration | 20    | CSV-import: parsing, validering, preview, fejlhåndtering.                                |
-| E2E         | 47    | Købsrejsen på 360, 768 og 1440 px.                                                       |
+| E2E         | 52    | Købsrejsen på 360, 768 og 1440 px.                                                       |
 
 E2E dækker det, der koster penge, når det går i stykker: katalog og filtre i
 URL'en, pris pr. kg, farvevalg, udsolgte varianter, læg-i-kurv til checkout,
@@ -215,6 +240,27 @@ header og footer igennem og åbner den. Den findes, fordi 24 links i sin tid
 pegede på sider, der aldrig var bygget — statuskoden alene afslørede det ikke,
 for `notFound()` bag en streaming-grænse svarer 200. Testen kigger derfor på
 den overskrift, brugeren rent faktisk ser.
+
+## Mobil
+
+Butikken er bygget mobile-first og afprøves på 360, 768 og 1440 px i hver
+e2e-kørsel. To ting er automatiseret, fordi de er usynlige på en bred skærm:
+
+**Vandret overløb.** En test går 22 ruter igennem på 360 px og fejler, hvis
+`scrollWidth` overstiger vinduet. Den findes, fordi den oprindelige test kun
+dækkede forsiden — og `/konto/log-ind` skubbede siden 157 px ud uden at nogen
+opdagede det. Årsagen var et grid-barn uden `min-w-0`: et grid-element har
+`min-width: auto` og kan derfor ikke krympe under sit indhold, så en vandret
+scroll-række inde i det river hele layoutet med.
+
+**Tryk-mål.** Hjertet på et produktkort måles og skal være mindst 44 × 44 px.
+WCAG 2.2 sætter grænsen ved 24, Apple og Google anbefaler 44 — og et hjerte,
+man rammer ved siden af, gemmer den forkerte vare.
+
+I admin har hver tabel sin egen `overflow-x-auto`-container. Uden den
+scroller _hele_ admin-siden sideværts, og Medusas sidebjælke og topbar glider
+med ud af skærmen. SKU-kolonnerne er `whitespace-nowrap`: et SKU er ét symbol,
+og brækket over tre linjer er det ulæseligt.
 
 ## Pakkeformater
 

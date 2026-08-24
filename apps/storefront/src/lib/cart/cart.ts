@@ -2,7 +2,12 @@ import "server-only";
 
 import { cookies } from "next/headers";
 import type { CartLine, CartSummary, Money } from "@nordprint/types";
-import { calculateFreeShippingProgress, money, resolveStockStatus } from "@nordprint/commerce";
+import {
+  calculateFreeShippingProgress,
+  calculateIncludedVat,
+  money,
+  resolveStockStatus,
+} from "@nordprint/commerce";
 import { commerceConfig } from "@nordprint/config";
 import { apiFetch, type ApiResult } from "../api/client";
 
@@ -94,6 +99,7 @@ interface MedusaCart {
   tax_total: number;
   total: number;
   promotions?: { code: string }[];
+  shipping_methods?: { id: string }[];
 }
 
 export async function fetchCart(): Promise<CartSummary | null> {
@@ -101,7 +107,7 @@ export async function fetchCart(): Promise<CartSummary | null> {
   if (!cartId) return null;
 
   const result = await apiFetch<{ cart: MedusaCart }>(
-    `/store/carts/${cartId}?fields=*items,*items.variant,*promotions`,
+    `/store/carts/${cartId}?fields=*items,*items.variant,*promotions,*shipping_methods`,
     { revalidate: 0 }
   );
 
@@ -178,6 +184,19 @@ export function toCartSummary(cart: MedusaCart): CartSummary {
   });
 
   const subtotal = asMoney(cart.subtotal);
+  const total = asMoney(cart.total);
+
+  // Medusa cannot compute tax before it knows where the parcel is going, so
+  // it reports 0 until an address is entered. On a Danish shop with
+  // tax-inclusive prices, "Heraf moms 0 kr" is not a neutral placeholder —
+  // it is a wrong number on a receipt. Derive it until the backend has the
+  // real one, and prefer the backend's the moment it does.
+  const reported = asMoney(cart.tax_total);
+  const taxTotal =
+    reported.amount > 0
+      ? reported
+      : (calculateIncludedVat(total, commerceConfig.vatRate, commerceConfig.pricesIncludeVat) ??
+        reported);
 
   return {
     id: cart.id,
@@ -185,9 +204,10 @@ export function toCartSummary(cart: MedusaCart): CartSummary {
     itemCount: lines.reduce((sum, line) => sum + line.quantity, 0),
     subtotal,
     discountTotal: asMoney(cart.discount_total),
-    shippingTotal: cart.shipping_total === null ? null : asMoney(cart.shipping_total),
-    taxTotal: asMoney(cart.tax_total),
-    total: asMoney(cart.total),
+    // Only a chosen shipping method makes the shipping total meaningful.
+    shippingTotal: (cart.shipping_methods ?? []).length === 0 ? null : asMoney(cart.shipping_total),
+    taxTotal,
+    total,
     currencyCode,
     freeShipping: calculateFreeShippingProgress(subtotal),
     promotionCodes: (cart.promotions ?? []).map((promotion) => promotion.code),

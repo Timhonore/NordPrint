@@ -85,7 +85,9 @@ export function MegaMenu({
               onMouseEnter={() => (hasPanel ? open(entry.label) : setOpenLabel(null))}
               onFocus={() => (hasPanel ? open(entry.label) : setOpenLabel(null))}
               className={cn(
-                "inline-flex h-10 items-center rounded-lg px-3 text-[0.9375rem] font-medium transition-colors",
+                // whitespace-nowrap: uden den brækkes "3D-printere" over to linjer,
+                // så snart pladsen bliver knap, og hele menuen bliver skæv.
+                "inline-flex h-10 shrink-0 items-center whitespace-nowrap rounded-lg px-3 text-[0.9375rem] font-medium transition-colors",
                 entry.highlight
                   ? "text-amber hover:bg-amber/10"
                   : "text-ink hover:bg-surface-muted",

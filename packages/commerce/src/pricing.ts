@@ -113,3 +113,26 @@ export function formatSpoolWeight(grams: number | null | undefined): string | nu
   }
   return `${grams} g`;
 }
+
+/**
+ * The VAT already contained in a tax-inclusive amount.
+ *
+ * Danish consumer prices include VAT, so 189 kr at 25 % is not 189 + 47,25 —
+ * it is 151,20 + 37,80. The customer is entitled to see which part is tax,
+ * and "Heraf moms 0 kr" on a Danish receipt is simply wrong.
+ *
+ * Used only until the backend has computed the real tax, which it cannot do
+ * before it knows the delivery address. Returns null when prices are not
+ * tax-inclusive, because then the tax is not in this number at all.
+ */
+export function calculateIncludedVat(
+  amount: Money,
+  vatRate: number,
+  pricesIncludeVat: boolean
+): Money | null {
+  if (!pricesIncludeVat) return null;
+  if (!Number.isFinite(vatRate) || vatRate <= 0) return null;
+
+  const net = amount.amount / (1 + vatRate);
+  return money(amount.amount - net, amount.currencyCode);
+}
