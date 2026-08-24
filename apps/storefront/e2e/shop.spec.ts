@@ -357,3 +357,76 @@ test.describe("Konto", () => {
     await expect(page.getByText("E-mail eller adgangskode passer ikke.")).toBeVisible();
   });
 });
+
+test.describe("Anmeldelser", () => {
+  test.skip(({ viewport }) => (viewport?.width ?? 0) < 1024, "Kun desktop");
+
+  test("gæster kan ikke anmelde — og bliver bedt om at logge ind", async ({ page }) => {
+    await page.goto("/produkt/nordprint-pla-basic");
+
+    const afsnit = page.locator("section[aria-labelledby=anmeldelser]");
+    await expect(afsnit).toContainText("for at skrive en anmeldelse");
+    await expect(afsnit.getByRole("button", { name: /skriv en anmeldelse/i })).toHaveCount(0);
+  });
+
+  test("en indsendt anmeldelse vises ikke, før den er godkendt", async ({ page }) => {
+    const email = `anmelder-${Date.now()}@nordprint-test.dk`;
+    const overskrift = `E2E ${Date.now()}`;
+
+    await page.goto("/konto/log-ind?opret");
+    await page.getByLabel("Fornavn").fill("Anmelder");
+    await page.getByLabel("Efternavn").fill("Test");
+    await page.getByLabel("E-mail").fill(email);
+    await page.getByLabel("Adgangskode").fill("Hemmeligt123");
+    await page
+      .getByRole("button", { name: /^opret konto$/i })
+      .last()
+      .click();
+    await expect(page).toHaveURL(/\/konto$/, { timeout: 20_000 });
+
+    await page.goto("/produkt/nordprint-pla-basic");
+    await page.getByRole("button", { name: /skriv en anmeldelse/i }).click();
+
+    // Radioen er sr-only inde i sit label — brugeren klikker på label'et.
+    await page
+      .locator("label")
+      .filter({ hasText: /^4 ud af 5$/ })
+      .click();
+    await page.getByLabel(/overskrift/i).fill(overskrift);
+    await page
+      .locator("#review-body")
+      .fill("Kørte fint på en A1 uden fejlprint. Diameteren virker jævn hele spolen igennem.");
+    await page.getByRole("button", { name: /send anmeldelse/i }).click();
+
+    await expect(page.locator("section[aria-labelledby=anmeldelser]")).toContainText(
+      "sendt til gennemlæsning"
+    );
+
+    // Det vigtigste i hele testen: den må ikke være publiceret.
+    await page.reload();
+    await expect(page.locator("section[aria-labelledby=anmeldelser]")).not.toContainText(
+      overskrift
+    );
+  });
+
+  test("for kort tekst afvises, før den sendes", async ({ page }) => {
+    const email = `kort-${Date.now()}@nordprint-test.dk`;
+
+    await page.goto("/konto/log-ind?opret");
+    await page.getByLabel("Fornavn").fill("Kort");
+    await page.getByLabel("E-mail").fill(email);
+    await page.getByLabel("Adgangskode").fill("Hemmeligt123");
+    await page
+      .getByRole("button", { name: /^opret konto$/i })
+      .last()
+      .click();
+    await expect(page).toHaveURL(/\/konto$/, { timeout: 20_000 });
+
+    await page.goto("/produkt/nordprint-pla-basic");
+    await page.getByRole("button", { name: /skriv en anmeldelse/i }).click();
+    await page.locator("#review-body").fill("Fin nok");
+    await page.getByRole("button", { name: /send anmeldelse/i }).click();
+
+    await expect(page.getByText("Skriv lidt mere — mindst 10 tegn.")).toBeVisible();
+  });
+});

@@ -170,6 +170,31 @@ renderes på serveren — så de er de samme på telefonen og på computeren.
 | `GET /store/nordprint/me/data-export`       | Alt, vi har registreret: kunde, adresser, ordrer, printere, favoritter, anmeldelser. Samles i backenden, fordi kun den kender alle moduler, der gemmer persondata.                  |
 | `POST /store/nordprint/me/deletion-request` | Registrerer anmodningen. Bevidst en _anmodning_: bogføringsloven kræver fakturaer i fem år, så ordrehistorik skal anonymiseres i stedet — det er en vurdering, et menneske træffer. |
 
+## Admin
+
+Medusa Admin er grundlaget; NordPrint lægger til, hvor Medusas generiske
+modeller ikke rækker.
+
+| Skærm                  | Hvad                                                                                                                                                                         |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| NordPrint (dashboard)  | Omsætning i dag, ordrer, gennemsnitsordre, topprodukter, lavt lager, seneste ordrer. Alle tal er rigtige aggregater — der er ingen prøvedata og ingen pladsholderdiagrammer. |
+| Marginer               | Salgspris, indkøbspris, dækningsbidrag og margin pr. variant, med redigerbar indkøbspris. Kostprisen findes kun her.                                                         |
+| Anmeldelser            | Moderationskø. Butikken viser kun `approved`, så en upasset kø betyder ingen anmeldelser — aldrig ukontrollerede.                                                            |
+| Lagerimport            | CSV med preview før skrivning.                                                                                                                                               |
+| Filament-widget        | Databladet på produktsiden.                                                                                                                                                  |
+| Kompatibilitets-widget | Regler mod printer, serie eller producent.                                                                                                                                   |
+
+To ting er værd at kende:
+
+**Priserne i importfilen er kroner, ikke øre.** Filen skrives i Excel af et
+menneske, og `102,50` er det, de taster. Previewet formaterer værdierne
+tilbage, før de vises — en diff, der siger "12000 → 940000", inviterer til en
+100×-fejl.
+
+**En betinget kompatibilitetsregel skal have en note.** Både backend og
+formular afviser en uden. "Passer med forbehold" uden at sige hvilket
+forbehold er værre end at sige ingenting.
+
 ## Udbyder-abstraktioner
 
 Betaling, fragt, e-mail, filer og søgning er grænseflader, ikke leverandører.
@@ -201,9 +226,9 @@ containeren genstartes og billederne er væk.
 
 | Type        | Antal | Hvad                                                                                     |
 | ----------- | ----- | ---------------------------------------------------------------------------------------- |
-| Unit        | 100   | Priser, penge, filtre, søgeparsing, anbefalingsregler, kompatibilitet, JSON-LD-escaping. |
+| Unit        | 101   | Priser, penge, filtre, søgeparsing, anbefalingsregler, kompatibilitet, JSON-LD-escaping. |
 | Integration | 20    | CSV-import: parsing, validering, preview, fejlhåndtering.                                |
-| E2E         | 47    | Købsrejsen på 360, 768 og 1440 px.                                                       |
+| E2E         | 50    | Købsrejsen på 360, 768 og 1440 px.                                                       |
 
 E2E dækker det, der koster penge, når det går i stykker: katalog og filtre i
 URL'en, pris pr. kg, farvevalg, udsolgte varianter, læg-i-kurv til checkout,

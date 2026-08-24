@@ -54,8 +54,8 @@ pnpm dev              # alt i udviklingstilstand
 pnpm build            # bygger pakker og apps i rækkefølge
 pnpm lint             # ESLint
 pnpm format           # Prettier --write
-pnpm --recursive test # unit- og integrationstests (120)
-pnpm test:e2e         # Playwright, tre viewports (47)
+pnpm --recursive test # unit- og integrationstests (124)
+pnpm test:e2e         # Playwright, tre viewports (50)
 ```
 
 `pnpm test:e2e` starter selv backend og storefront. Er der allerede en

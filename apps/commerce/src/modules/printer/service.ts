@@ -26,6 +26,60 @@ class PrinterModuleService extends MedusaService({
     return models.map((entry) => toLineageDto(entry));
   }
 
+  /**
+   * Human-readable names for compatibility targets.
+   *
+   * A rule points at a model, a family or a brand by id. The admin has to
+   * show *which* — a screen listing `pmod_01M0…` tells nobody whether the
+   * rule covers the X1 Carbon or the whole A-series.
+   *
+   * Returns a map keyed `"<targetType>:<targetId>"`, and looks up only the
+   * types actually present.
+   */
+  async resolveTargetNames(
+    targets: readonly { targetType: string; targetId: string }[]
+  ): Promise<Map<string, string>> {
+    const names = new Map<string, string>();
+    if (targets.length === 0) return names;
+
+    const idsByType = new Map<string, string[]>();
+    for (const target of targets) {
+      const current = idsByType.get(target.targetType) ?? [];
+      if (!current.includes(target.targetId)) current.push(target.targetId);
+      idsByType.set(target.targetType, current);
+    }
+
+    const modelIds = idsByType.get("printer_model") ?? [];
+    if (modelIds.length > 0) {
+      for (const model of await this.listModelsWithLineage({ id: modelIds, active: undefined })) {
+        names.set(`printer_model:${model.id}`, model.displayName ?? model.name);
+      }
+    }
+
+    const familyIds = idsByType.get("printer_family") ?? [];
+    if (familyIds.length > 0) {
+      for (const family of await this.listPrinterFamilies(
+        { id: familyIds },
+        { relations: ["brand"] }
+      )) {
+        const brand = (family as { brand?: { name?: string } }).brand?.name;
+        names.set(
+          `printer_family:${family.id}`,
+          brand ? `${brand} ${family.name} (hele serien)` : `${family.name} (hele serien)`
+        );
+      }
+    }
+
+    const brandIds = idsByType.get("printer_brand") ?? [];
+    if (brandIds.length > 0) {
+      for (const brand of await this.listPrinterBrands({ id: brandIds })) {
+        names.set(`printer_brand:${brand.id}`, `${brand.name} (alle printere)`);
+      }
+    }
+
+    return names;
+  }
+
   async retrieveModelWithLineage(id: string): Promise<PrinterModelWithLineage | null> {
     const [entry] = await this.listModelsWithLineage({ id });
     return entry ?? null;

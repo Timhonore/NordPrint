@@ -163,7 +163,7 @@ export default async function ProductPage({
           </section>
         ) : null}
 
-        <ProductReviews productId={product.id} className="mt-14" />
+        <ProductReviews productId={product.id} productHandle={product.handle} className="mt-14" />
 
         <RelatedProducts product={product} className="mt-16" />
       </div>

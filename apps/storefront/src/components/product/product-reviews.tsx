@@ -1,6 +1,8 @@
 import { Badge, EmptyState, StarRating, TechLabel } from "@nordprint/ui";
 import type { ReviewSummary } from "@nordprint/types";
 import { apiFetch, orFallback } from "@/lib/api/client";
+import { getCustomer } from "@/lib/account/session";
+import { ReviewForm } from "./review-form";
 
 interface PublishedReview {
   id: string;
@@ -26,11 +28,14 @@ const EMPTY: { summary: ReviewSummary; reviews: PublishedReview[] } = {
  */
 export async function ProductReviews({
   productId,
+  productHandle,
   className,
 }: {
   readonly productId: string;
+  readonly productHandle: string;
   readonly className?: string;
 }): Promise<React.JSX.Element> {
+  const customer = await getCustomer();
   const result = await apiFetch<typeof EMPTY>(
     `/store/nordprint/reviews/${encodeURIComponent(productId)}?limit=6`,
     { revalidate: 120 }
@@ -105,6 +110,12 @@ export async function ProductReviews({
           </ul>
         </div>
       )}
+
+      <ReviewForm
+        productId={productId}
+        productHandle={productHandle}
+        signedIn={customer !== null}
+      />
     </section>
   );
 }
