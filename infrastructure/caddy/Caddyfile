@@ -1,0 +1,128 @@
+# NordPrint — reverse proxy og TLS.
+#
+# Caddy henter og fornyer Let's Encrypt-certifikater automatisk. Der er ingen
+# certbot, ingen cron og ingen manuel fornyelse at glemme.
+#
+# Domænerne kommer fra miljøet, så den samme fil kører staging og produktion:
+#   STOREFRONT_DOMAIN=nordprint.dk
+#   API_DOMAIN=api.nordprint.dk
+#   ADMIN_DOMAIN=admin.nordprint.dk
+
+{
+	email {$ACME_EMAIL}
+
+	# Klientens rigtige IP-adresse videregives til appen, som bruger den til
+	# rate limiting. Uden dette ser alle requests ud til at komme fra Caddy.
+	servers {
+		trusted_proxies static private_ranges
+	}
+}
+
+# Fælles sikkerhedsheaders. Defineret én gang og importeret, så en ny
+# subdomæne ikke kommer til at mangle dem.
+(security_headers) {
+	header {
+		# HSTS: to år, inkl. subdomæner. Slå det først til, når alle
+		# subdomæner kører HTTPS — det kan ikke fortrydes i browseren.
+		Strict-Transport-Security "max-age=63072000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "geolocation=(), microphone=(), camera=(), interest-cohort=()"
+		Cross-Origin-Opener-Policy "same-origin"
+		# Fortæl ikke verden hvilken server eller version der kører.
+		-Server
+		-X-Powered-By
+	}
+}
+
+(compression) {
+	encode zstd gzip
+}
+
+# ---------------------------------------------------------------- storefront
+
+{$STOREFRONT_DOMAIN} {
+	import security_headers
+	import compression
+
+	# Next.js' egne bygge-artefakter er indholds-hashede og kan caches for
+	# evigt. Alt andet styres af appens egne Cache-Control-headere.
+	@immutable path /_next/static/* /fonts/* /favicon.ico
+	header @immutable Cache-Control "public, max-age=31536000, immutable"
+
+	reverse_proxy storefront:8000 {
+		header_up X-Real-IP {remote_host}
+	}
+
+	log {
+		output stdout
+		format json
+		# Sundhedstjek fylder loggen uden at fortælle noget.
+		level INFO
+	}
+}
+
+# www → apex. Ét kanonisk domæne, ellers splittes SEO-signalerne.
+www.{$STOREFRONT_DOMAIN} {
+	redir https://{$STOREFRONT_DOMAIN}{uri} permanent
+}
+
+# ----------------------------------------------------------------- Medusa API
+
+{$API_DOMAIN} {
+	import security_headers
+	import compression
+
+	# CORS håndteres af Medusa selv ud fra STORE_CORS/ADMIN_CORS, så det
+	# ikke kan komme til at stå to steder med forskelligt indhold.
+	reverse_proxy medusa-server:9000 {
+		header_up X-Real-IP {remote_host}
+
+		# Ordreoprettelse og filimport kan tage tid; standardens 30 sekunder
+		# er for lidt til en CSV med tusind linjer.
+		transport http {
+			read_timeout 120s
+			write_timeout 120s
+		}
+	}
+
+	log {
+		output stdout
+		format json
+	}
+}
+
+# --------------------------------------------------------------------- admin
+
+{$ADMIN_DOMAIN} {
+	import security_headers
+	import compression
+
+	# Admin er aldrig offentlig: Medusa kræver login på hver eneste rute.
+	# Vil man snævre det yderligere ind, kan man låse til kontorets IP her:
+	#
+	#   @office not remote_ip 203.0.113.0/24
+	#   respond @office 403
+	#
+	# Det er bevidst ikke slået til som standard — en udelukket medarbejder
+	# på hjemmekontor er en dyrere fejl end den ekstra beskyttelse er værd,
+	# når admin i forvejen kræver adgangskode.
+
+	header {
+		# Admin må aldrig indekseres, uanset hvad der ellers står.
+		X-Robots-Tag "noindex, nofollow, noarchive"
+	}
+
+	# Medusa serverer admin-bundlet fra /app på den samme server.
+	redir / /app 302
+
+	reverse_proxy medusa-server:9000 {
+		header_up X-Real-IP {remote_host}
+	}
+
+	log {
+		output stdout
+		format json
+	}
+}

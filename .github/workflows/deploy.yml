@@ -1,0 +1,119 @@
+name: Deploy til produktion
+
+# Manuel udløsning, eller automatisk når CI er grønt på main.
+#
+# Der findes ingen sti, hvor en fejlet build bliver deployet: workflow_run
+# fires også ved fejl, så det første job kontrollerer udfaldet eksplicit.
+on:
+  workflow_run:
+    workflows: ["CI"]
+    branches: [main]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Skriv "deploy" for at bekræfte'
+        required: true
+        type: string
+
+concurrency:
+  # Aldrig to deploys samtidigt — og en igangværende deploy afbrydes ikke
+  # halvvejs, for det ville efterlade stakken i en ukendt tilstand.
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  guard:
+    name: Kontrollér forudsætninger
+    runs-on: ubuntu-latest
+    outputs:
+      proceed: ${{ steps.check.outputs.proceed }}
+    steps:
+      - id: check
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            if [ "${{ inputs.confirm }}" != "deploy" ]; then
+              echo "Bekræftelsen manglede. Skriv præcis: deploy" >&2
+              exit 1
+            fi
+            echo "proceed=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [ "${{ github.event.workflow_run.conclusion }}" != "success" ]; then
+            echo "CI fejlede (${{ github.event.workflow_run.conclusion }}). Deployer ikke." >&2
+            echo "proceed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "proceed=true" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    name: Deploy til VPS
+    needs: guard
+    if: needs.guard.outputs.proceed == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    # GitHub Environment: her ligger hemmelighederne, og her kan man slå
+    # manuel godkendelse til, hvis man vil have et menneske i loopet.
+    environment:
+      name: production
+      url: https://${{ vars.STOREFRONT_DOMAIN }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Opsæt SSH
+        # Nøglen kommer fra GitHub Secrets og skrives kun til runnerens
+        # efemere disk. Der står ingen credentials i denne fil.
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          # Værtsnøglen pinnes, så en kompromitteret DNS ikke kan omdirigere
+          # deployet til en fremmed server.
+          echo "${{ secrets.DEPLOY_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Deploy
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
+        run: |
+          ssh -o BatchMode=yes "${DEPLOY_USER}@${DEPLOY_HOST}" \
+            "cd ${DEPLOY_PATH} && ./infrastructure/scripts/deploy.sh ${{ github.sha }}"
+
+      - name: Verificér at siden svarer
+        # Deployet er ikke færdigt, fordi containerne startede. Det er
+        # færdigt, når shoppen svarer.
+        run: |
+          for attempt in 1 2 3 4 5 6 7 8 9 10; do
+            if curl --fail --silent --show-error --max-time 10 \
+              "https://${{ vars.STOREFRONT_DOMAIN }}/" > /dev/null; then
+              echo "Storefront svarer."
+              exit 0
+            fi
+            echo "Forsøg ${attempt}/10 — venter 15 sekunder …"
+            sleep 15
+          done
+          echo "Storefront svarede ikke efter deploy." >&2
+          exit 1
+
+      - name: Verificér API
+        run: |
+          curl --fail --silent --show-error --max-time 10 \
+            "https://${{ vars.API_DOMAIN }}/health" > /dev/null
+          echo "API svarer."
+
+      - name: Rul tilbage ved fejl
+        if: failure()
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
+        run: |
+          echo "::warning::Deployet fejlede — ruller tilbage til forrige version."
+          ssh -o BatchMode=yes "${DEPLOY_USER}@${DEPLOY_HOST}" \
+            "cd ${DEPLOY_PATH} && ./infrastructure/scripts/rollback.sh"

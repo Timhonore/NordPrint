@@ -1,0 +1,36 @@
+{
+  "name": "nordprint",
+  "private": true,
+  "version": "0.1.0",
+  "description": "NordPrint - dansk 3D-print webshop. Alt til dit næste print.",
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=22.0.0",
+    "pnpm": ">=10.0.0"
+  },
+  "scripts": {
+    "dev": "pnpm --parallel --filter \"./apps/**\" dev",
+    "dev:storefront": "pnpm --filter @nordprint/storefront dev",
+    "dev:commerce": "pnpm --filter @nordprint/commerce-backend dev",
+    "build": "pnpm --recursive --sequential build",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "typecheck": "pnpm --recursive --sequential typecheck",
+    "test": "pnpm --recursive --sequential test",
+    "test:e2e": "pnpm --filter @nordprint/storefront test:e2e",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,css,yml,yaml}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,css,yml,yaml}\"",
+    "clean": "pnpm --recursive exec rm -rf dist .next .medusa node_modules && rm -rf node_modules"
+  },
+  "devDependencies": {
+    "prettier": "^3.9.6",
+    "typescript": "^5.9.3",
+    "eslint": "^9.39.5",
+    "typescript-eslint": "^8.67.0",
+    "@eslint/js": "^9.39.5",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "@next/eslint-plugin-next": "^16.3.2",
+    "globals": "^16.5.0"
+  }
+}
