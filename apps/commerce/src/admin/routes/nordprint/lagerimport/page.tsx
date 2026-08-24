@@ -142,7 +142,7 @@ const InventoryImport = () => {
 
         <Textarea
           rows={8}
-          className="font-mono text-xs"
+          className="whitespace-nowrap font-mono text-xs"
           placeholder={EXAMPLE}
           value={csv}
           onChange={(event) => {
@@ -197,107 +197,119 @@ const InventoryImport = () => {
               <Text size="small" className="mb-2 text-ui-fg-subtle">
                 Rækker med fejl importeres ikke.
               </Text>
-              <Table>
-                <Table.Header>
-                  <Table.Row>
-                    <Table.HeaderCell>Linje</Table.HeaderCell>
-                    <Table.HeaderCell>SKU</Table.HeaderCell>
-                    <Table.HeaderCell>Problem</Table.HeaderCell>
-                  </Table.Row>
-                </Table.Header>
-                <Table.Body>
-                  {preview.errors.map((row) => (
-                    <Table.Row key={`${row.line}-${row.sku ?? ""}`}>
-                      <Table.Cell>{row.line}</Table.Cell>
-                      <Table.Cell className="font-mono text-xs">{row.sku ?? "—"}</Table.Cell>
-                      <Table.Cell className="text-ui-fg-error">{row.message}</Table.Cell>
+              <div className="-mx-6 overflow-x-auto px-6">
+                <Table>
+                  <Table.Header>
+                    <Table.Row>
+                      <Table.HeaderCell>Linje</Table.HeaderCell>
+                      <Table.HeaderCell>SKU</Table.HeaderCell>
+                      <Table.HeaderCell>Problem</Table.HeaderCell>
                     </Table.Row>
-                  ))}
-                </Table.Body>
-              </Table>
+                  </Table.Header>
+                  <Table.Body>
+                    {preview.errors.map((row) => (
+                      <Table.Row key={`${row.line}-${row.sku ?? ""}`}>
+                        <Table.Cell>{row.line}</Table.Cell>
+                        <Table.Cell className="whitespace-nowrap font-mono text-xs">
+                          {row.sku ?? "—"}
+                        </Table.Cell>
+                        <Table.Cell className="text-ui-fg-error">{row.message}</Table.Cell>
+                      </Table.Row>
+                    ))}
+                  </Table.Body>
+                </Table>
+              </div>
             </div>
           ) : null}
 
           {preview.failed && preview.failed.length > 0 ? (
             <div>
               <Heading level="h3">Rækker der fejlede under skrivning</Heading>
-              <Table>
-                <Table.Header>
-                  <Table.Row>
-                    <Table.HeaderCell>SKU</Table.HeaderCell>
-                    <Table.HeaderCell>Problem</Table.HeaderCell>
-                  </Table.Row>
-                </Table.Header>
-                <Table.Body>
-                  {preview.failed.map((row) => (
-                    <Table.Row key={row.sku}>
-                      <Table.Cell className="font-mono text-xs">{row.sku}</Table.Cell>
-                      <Table.Cell className="text-ui-fg-error">{row.message}</Table.Cell>
+              <div className="-mx-6 overflow-x-auto px-6">
+                <Table>
+                  <Table.Header>
+                    <Table.Row>
+                      <Table.HeaderCell>SKU</Table.HeaderCell>
+                      <Table.HeaderCell>Problem</Table.HeaderCell>
                     </Table.Row>
-                  ))}
-                </Table.Body>
-              </Table>
+                  </Table.Header>
+                  <Table.Body>
+                    {preview.failed.map((row) => (
+                      <Table.Row key={row.sku}>
+                        <Table.Cell className="whitespace-nowrap font-mono text-xs">
+                          {row.sku}
+                        </Table.Cell>
+                        <Table.Cell className="text-ui-fg-error">{row.message}</Table.Cell>
+                      </Table.Row>
+                    ))}
+                  </Table.Body>
+                </Table>
+              </div>
             </div>
           ) : null}
 
           {preview.changes.length > 0 ? (
             <div>
               <Heading level="h3">Ændringer</Heading>
-              <Table>
-                <Table.Header>
-                  <Table.Row>
-                    <Table.HeaderCell>Linje</Table.HeaderCell>
-                    <Table.HeaderCell>Vare</Table.HeaderCell>
-                    <Table.HeaderCell>Ændres</Table.HeaderCell>
-                    <Table.HeaderCell>Margin efter</Table.HeaderCell>
-                  </Table.Row>
-                </Table.Header>
-                <Table.Body>
-                  {preview.changes.map((row) => (
-                    <Table.Row key={row.variantId}>
-                      <Table.Cell>{row.line}</Table.Cell>
-                      <Table.Cell>
-                        {row.productTitle}
-                        <div className="font-mono text-xs text-ui-fg-subtle">{row.sku}</div>
-                      </Table.Cell>
-                      <Table.Cell>
-                        {row.changes.map((change) => (
-                          <div key={change.field} className="text-xs">
-                            {FIELD_LABEL[change.field] ?? change.field}:{" "}
-                            <span className="text-ui-fg-muted">
-                              {formatCell(change.field, change.from)}
-                            </span>{" "}
-                            →{" "}
-                            <span className="text-ui-fg-base">
-                              {formatCell(change.field, change.to)}
-                            </span>
-                          </div>
-                        ))}
-                      </Table.Cell>
-                      <Table.Cell>
-                        {row.marginPercent === null ? (
-                          <Text size="xsmall" className="text-ui-fg-muted">
-                            Ukendt
-                          </Text>
-                        ) : (
-                          <Badge
-                            size="2xsmall"
-                            color={
-                              row.marginPercent < 0
-                                ? "red"
-                                : row.marginPercent < 15
-                                  ? "orange"
-                                  : "green"
-                            }
-                          >
-                            {row.marginPercent} %
-                          </Badge>
-                        )}
-                      </Table.Cell>
+              <div className="-mx-6 overflow-x-auto px-6">
+                <Table>
+                  <Table.Header>
+                    <Table.Row>
+                      <Table.HeaderCell>Linje</Table.HeaderCell>
+                      <Table.HeaderCell>Vare</Table.HeaderCell>
+                      <Table.HeaderCell>Ændres</Table.HeaderCell>
+                      <Table.HeaderCell>Margin efter</Table.HeaderCell>
                     </Table.Row>
-                  ))}
-                </Table.Body>
-              </Table>
+                  </Table.Header>
+                  <Table.Body>
+                    {preview.changes.map((row) => (
+                      <Table.Row key={row.variantId}>
+                        <Table.Cell>{row.line}</Table.Cell>
+                        <Table.Cell>
+                          {row.productTitle}
+                          <div className="whitespace-nowrap font-mono text-xs text-ui-fg-subtle">
+                            {row.sku}
+                          </div>
+                        </Table.Cell>
+                        <Table.Cell>
+                          {row.changes.map((change) => (
+                            <div key={change.field} className="text-xs">
+                              {FIELD_LABEL[change.field] ?? change.field}:{" "}
+                              <span className="text-ui-fg-muted">
+                                {formatCell(change.field, change.from)}
+                              </span>{" "}
+                              →{" "}
+                              <span className="text-ui-fg-base">
+                                {formatCell(change.field, change.to)}
+                              </span>
+                            </div>
+                          ))}
+                        </Table.Cell>
+                        <Table.Cell>
+                          {row.marginPercent === null ? (
+                            <Text size="xsmall" className="text-ui-fg-muted">
+                              Ukendt
+                            </Text>
+                          ) : (
+                            <Badge
+                              size="2xsmall"
+                              color={
+                                row.marginPercent < 0
+                                  ? "red"
+                                  : row.marginPercent < 15
+                                    ? "orange"
+                                    : "green"
+                              }
+                            >
+                              {row.marginPercent} %
+                            </Badge>
+                          )}
+                        </Table.Cell>
+                      </Table.Row>
+                    ))}
+                  </Table.Body>
+                </Table>
+              </div>
             </div>
           ) : null}
 

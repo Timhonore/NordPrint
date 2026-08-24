@@ -185,7 +185,9 @@ const NordPrintDashboard = () => {
                       {entry.productTitle}
                       <span className="text-ui-fg-subtle"> · {entry.variantTitle}</span>
                     </Table.Cell>
-                    <Table.Cell className="font-mono text-xs">{entry.sku ?? "—"}</Table.Cell>
+                    <Table.Cell className="whitespace-nowrap font-mono text-xs">
+                      {entry.sku ?? "—"}
+                    </Table.Cell>
                     <Table.Cell>
                       <Badge size="2xsmall" color={entry.available === 0 ? "red" : "orange"}>
                         {entry.available}

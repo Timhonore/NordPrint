@@ -228,7 +228,7 @@ containeren genstartes og billederne er væk.
 | ----------- | ----- | ---------------------------------------------------------------------------------------- |
 | Unit        | 101   | Priser, penge, filtre, søgeparsing, anbefalingsregler, kompatibilitet, JSON-LD-escaping. |
 | Integration | 20    | CSV-import: parsing, validering, preview, fejlhåndtering.                                |
-| E2E         | 50    | Købsrejsen på 360, 768 og 1440 px.                                                       |
+| E2E         | 52    | Købsrejsen på 360, 768 og 1440 px.                                                       |
 
 E2E dækker det, der koster penge, når det går i stykker: katalog og filtre i
 URL'en, pris pr. kg, farvevalg, udsolgte varianter, læg-i-kurv til checkout,
@@ -240,6 +240,27 @@ header og footer igennem og åbner den. Den findes, fordi 24 links i sin tid
 pegede på sider, der aldrig var bygget — statuskoden alene afslørede det ikke,
 for `notFound()` bag en streaming-grænse svarer 200. Testen kigger derfor på
 den overskrift, brugeren rent faktisk ser.
+
+## Mobil
+
+Butikken er bygget mobile-first og afprøves på 360, 768 og 1440 px i hver
+e2e-kørsel. To ting er automatiseret, fordi de er usynlige på en bred skærm:
+
+**Vandret overløb.** En test går 22 ruter igennem på 360 px og fejler, hvis
+`scrollWidth` overstiger vinduet. Den findes, fordi den oprindelige test kun
+dækkede forsiden — og `/konto/log-ind` skubbede siden 157 px ud uden at nogen
+opdagede det. Årsagen var et grid-barn uden `min-w-0`: et grid-element har
+`min-width: auto` og kan derfor ikke krympe under sit indhold, så en vandret
+scroll-række inde i det river hele layoutet med.
+
+**Tryk-mål.** Hjertet på et produktkort måles og skal være mindst 44 × 44 px.
+WCAG 2.2 sætter grænsen ved 24, Apple og Google anbefaler 44 — og et hjerte,
+man rammer ved siden af, gemmer den forkerte vare.
+
+I admin har hver tabel sin egen `overflow-x-auto`-container. Uden den
+scroller _hele_ admin-siden sideværts, og Medusas sidebjælke og topbar glider
+med ud af skærmen. SKU-kolonnerne er `whitespace-nowrap`: et SKU er ét symbol,
+og brækket over tre linjer er det ulæseligt.
 
 ## Pakkeformater
 

@@ -138,95 +138,97 @@ const ReviewModeration = () => {
               : `Ingen anmeldelser i "${QUEUE_LABEL[queue]}".`}
           </Text>
         ) : (
-          <Table>
-            <Table.Header>
-              <Table.Row>
-                <Table.HeaderCell>Anmeldelse</Table.HeaderCell>
-                <Table.HeaderCell>Vurdering</Table.HeaderCell>
-                <Table.HeaderCell>Køb</Table.HeaderCell>
-                {queue === "pending" ? <Table.HeaderCell>Handling</Table.HeaderCell> : null}
-                {queue === "rejected" ? <Table.HeaderCell>Note</Table.HeaderCell> : null}
-              </Table.Row>
-            </Table.Header>
-            <Table.Body>
-              {reviews.map((review) => (
-                <Table.Row key={review.id}>
-                  <Table.Cell className="max-w-md">
-                    {review.title ? (
-                      <Text weight="plus" size="small">
-                        {review.title}
-                      </Text>
-                    ) : null}
-                    <Text size="small" className="whitespace-pre-wrap text-ui-fg-subtle">
-                      {review.body}
-                    </Text>
-                    <Text size="xsmall" className="mt-1 text-ui-fg-muted">
-                      {review.author_name ?? "Anonym"} · {formatDate(review.created_at)}
-                    </Text>
-                  </Table.Cell>
-
-                  <Table.Cell>
-                    <Badge size="2xsmall">{review.rating} / 5</Badge>
-                  </Table.Cell>
-
-                  <Table.Cell>
-                    {review.verified_purchase ? (
-                      <Badge size="2xsmall" color="green">
-                        Verificeret
-                      </Badge>
-                    ) : (
-                      <Text size="xsmall" className="text-ui-fg-muted">
-                        Ikke verificeret
-                      </Text>
-                    )}
-                  </Table.Cell>
-
-                  {queue === "pending" ? (
-                    <Table.Cell>
-                      <div className="flex min-w-64 flex-col gap-2">
-                        <Textarea
-                          rows={2}
-                          placeholder="Intern note (valgfri)"
-                          value={notes[review.id] ?? ""}
-                          onChange={(event) =>
-                            setNotes((current) => ({
-                              ...current,
-                              [review.id]: event.target.value,
-                            }))
-                          }
-                        />
-                        <div className="flex gap-2">
-                          <Button
-                            size="small"
-                            disabled={busy === review.id}
-                            onClick={() => void moderate(review.id, "approved")}
-                          >
-                            Godkend
-                          </Button>
-                          <Button
-                            size="small"
-                            variant="secondary"
-                            disabled={busy === review.id}
-                            onClick={() => void moderate(review.id, "rejected")}
-                          >
-                            Afvis
-                          </Button>
-                        </div>
-                      </div>
-                    </Table.Cell>
-                  ) : null}
-
-                  {queue === "rejected" ? (
-                    <Table.Cell>
-                      <Text size="xsmall" className="text-ui-fg-subtle">
-                        {review.moderation_note ?? "—"}
-                      </Text>
-                    </Table.Cell>
-                  ) : null}
+          <div className="-mx-6 overflow-x-auto px-6">
+            <Table>
+              <Table.Header>
+                <Table.Row>
+                  <Table.HeaderCell>Anmeldelse</Table.HeaderCell>
+                  <Table.HeaderCell>Vurdering</Table.HeaderCell>
+                  <Table.HeaderCell>Køb</Table.HeaderCell>
+                  {queue === "pending" ? <Table.HeaderCell>Handling</Table.HeaderCell> : null}
+                  {queue === "rejected" ? <Table.HeaderCell>Note</Table.HeaderCell> : null}
                 </Table.Row>
-              ))}
-            </Table.Body>
-          </Table>
+              </Table.Header>
+              <Table.Body>
+                {reviews.map((review) => (
+                  <Table.Row key={review.id}>
+                    <Table.Cell className="max-w-md">
+                      {review.title ? (
+                        <Text weight="plus" size="small">
+                          {review.title}
+                        </Text>
+                      ) : null}
+                      <Text size="small" className="whitespace-pre-wrap text-ui-fg-subtle">
+                        {review.body}
+                      </Text>
+                      <Text size="xsmall" className="mt-1 text-ui-fg-muted">
+                        {review.author_name ?? "Anonym"} · {formatDate(review.created_at)}
+                      </Text>
+                    </Table.Cell>
+
+                    <Table.Cell>
+                      <Badge size="2xsmall">{review.rating} / 5</Badge>
+                    </Table.Cell>
+
+                    <Table.Cell>
+                      {review.verified_purchase ? (
+                        <Badge size="2xsmall" color="green">
+                          Verificeret
+                        </Badge>
+                      ) : (
+                        <Text size="xsmall" className="text-ui-fg-muted">
+                          Ikke verificeret
+                        </Text>
+                      )}
+                    </Table.Cell>
+
+                    {queue === "pending" ? (
+                      <Table.Cell>
+                        <div className="flex min-w-64 flex-col gap-2">
+                          <Textarea
+                            rows={2}
+                            placeholder="Intern note (valgfri)"
+                            value={notes[review.id] ?? ""}
+                            onChange={(event) =>
+                              setNotes((current) => ({
+                                ...current,
+                                [review.id]: event.target.value,
+                              }))
+                            }
+                          />
+                          <div className="flex gap-2">
+                            <Button
+                              size="small"
+                              disabled={busy === review.id}
+                              onClick={() => void moderate(review.id, "approved")}
+                            >
+                              Godkend
+                            </Button>
+                            <Button
+                              size="small"
+                              variant="secondary"
+                              disabled={busy === review.id}
+                              onClick={() => void moderate(review.id, "rejected")}
+                            >
+                              Afvis
+                            </Button>
+                          </div>
+                        </div>
+                      </Table.Cell>
+                    ) : null}
+
+                    {queue === "rejected" ? (
+                      <Table.Cell>
+                        <Text size="xsmall" className="text-ui-fg-subtle">
+                          {review.moderation_note ?? "—"}
+                        </Text>
+                      </Table.Cell>
+                    ) : null}
+                  </Table.Row>
+                ))}
+              </Table.Body>
+            </Table>
+          </div>
         )}
       </div>
     </Container>

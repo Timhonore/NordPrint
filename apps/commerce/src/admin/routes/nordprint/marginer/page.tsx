@@ -160,88 +160,98 @@ const MarginOverview = () => {
           <Text className="text-ui-fg-subtle">Ingen varianter matcher søgningen.</Text>
         ) : (
           <>
-            <Table>
-              <Table.Header>
-                <Table.Row>
-                  <Table.HeaderCell>Vare</Table.HeaderCell>
-                  <Table.HeaderCell>SKU</Table.HeaderCell>
-                  <Table.HeaderCell>Salgspris</Table.HeaderCell>
-                  <Table.HeaderCell>Indkøbspris</Table.HeaderCell>
-                  <Table.HeaderCell>Dækningsbidrag</Table.HeaderCell>
-                  <Table.HeaderCell>Margin</Table.HeaderCell>
-                </Table.Row>
-              </Table.Header>
-              <Table.Body>
-                {data.items.map((row) => (
-                  <Table.Row key={row.variantId}>
-                    <Table.Cell>
-                      {row.productTitle}
-                      <span className="text-ui-fg-subtle"> · {row.variantTitle}</span>
-                    </Table.Cell>
-
-                    <Table.Cell className="font-mono text-xs">{row.sku ?? "—"}</Table.Cell>
-
-                    <Table.Cell className="tabular-nums">
-                      {row.formatted?.salePrice ?? "—"}
-                    </Table.Cell>
-
-                    <Table.Cell>
-                      <div className="flex items-center gap-2">
-                        <Input
-                          className="w-28"
-                          inputMode="decimal"
-                          placeholder={row.costPrice === null ? "Ikke sat" : ""}
-                          value={
-                            drafts[row.variantId] ??
-                            (row.costPrice === null ? "" : String(row.costPrice / 100))
-                          }
-                          onChange={(event) =>
-                            setDrafts((current) => ({
-                              ...current,
-                              [row.variantId]: event.target.value,
-                            }))
-                          }
-                        />
-                        {drafts[row.variantId] !== undefined ? (
-                          <Button
-                            size="small"
-                            disabled={busy === row.variantId}
-                            onClick={() => void saveCostPrice(row)}
-                          >
-                            Gem
-                          </Button>
-                        ) : null}
-                      </div>
-                    </Table.Cell>
-
-                    <Table.Cell className="tabular-nums">
-                      {row.formatted?.contribution ?? "—"}
-                    </Table.Cell>
-
-                    <Table.Cell>
-                      {row.marginPercent === null ? (
-                        <Text size="xsmall" className="text-ui-fg-muted">
-                          Ukendt
-                        </Text>
-                      ) : (
-                        <Badge
-                          size="2xsmall"
-                          color={
-                            row.marginPercent < 0
-                              ? "red"
-                              : row.marginPercent < LOW_MARGIN
-                                ? "orange"
-                                : "green"
-                          }
-                        >
-                          {row.formatted?.margin}
-                        </Badge>
-                      )}
-                    </Table.Cell>
+            {/*
+              Egen scroll-container: seks kolonner passer ikke på en telefon,
+              og uden den her scroller HELE admin-siden sideværts — sidebjælke
+              og topbar glider med ud af skærmen. Det negative margin lader
+              tabellen gå helt ud til kanten, så man kan se, der er mere.
+            */}
+            <div className="-mx-6 overflow-x-auto px-6">
+              <Table>
+                <Table.Header>
+                  <Table.Row>
+                    <Table.HeaderCell>Vare</Table.HeaderCell>
+                    <Table.HeaderCell>SKU</Table.HeaderCell>
+                    <Table.HeaderCell>Salgspris</Table.HeaderCell>
+                    <Table.HeaderCell>Indkøbspris</Table.HeaderCell>
+                    <Table.HeaderCell>Dækningsbidrag</Table.HeaderCell>
+                    <Table.HeaderCell>Margin</Table.HeaderCell>
                   </Table.Row>
-                ))}
-              </Table.Body>
-            </Table>
+                </Table.Header>
+                <Table.Body>
+                  {data.items.map((row) => (
+                    <Table.Row key={row.variantId}>
+                      <Table.Cell>
+                        {row.productTitle}
+                        <span className="text-ui-fg-subtle"> · {row.variantTitle}</span>
+                      </Table.Cell>
+
+                      <Table.Cell className="whitespace-nowrap font-mono text-xs">
+                        {row.sku ?? "—"}
+                      </Table.Cell>
+
+                      <Table.Cell className="tabular-nums">
+                        {row.formatted?.salePrice ?? "—"}
+                      </Table.Cell>
+
+                      <Table.Cell>
+                        <div className="flex items-center gap-2">
+                          <Input
+                            className="w-28"
+                            inputMode="decimal"
+                            placeholder={row.costPrice === null ? "Ikke sat" : ""}
+                            value={
+                              drafts[row.variantId] ??
+                              (row.costPrice === null ? "" : String(row.costPrice / 100))
+                            }
+                            onChange={(event) =>
+                              setDrafts((current) => ({
+                                ...current,
+                                [row.variantId]: event.target.value,
+                              }))
+                            }
+                          />
+                          {drafts[row.variantId] !== undefined ? (
+                            <Button
+                              size="small"
+                              disabled={busy === row.variantId}
+                              onClick={() => void saveCostPrice(row)}
+                            >
+                              Gem
+                            </Button>
+                          ) : null}
+                        </div>
+                      </Table.Cell>
+
+                      <Table.Cell className="tabular-nums">
+                        {row.formatted?.contribution ?? "—"}
+                      </Table.Cell>
+
+                      <Table.Cell>
+                        {row.marginPercent === null ? (
+                          <Text size="xsmall" className="text-ui-fg-muted">
+                            Ukendt
+                          </Text>
+                        ) : (
+                          <Badge
+                            size="2xsmall"
+                            color={
+                              row.marginPercent < 0
+                                ? "red"
+                                : row.marginPercent < LOW_MARGIN
+                                  ? "orange"
+                                  : "green"
+                            }
+                          >
+                            {row.formatted?.margin}
+                          </Badge>
+                        )}
+                      </Table.Cell>
+                    </Table.Row>
+                  ))}
+                </Table.Body>
+              </Table>
+            </div>
 
             {pages > 1 ? (
               <div className="mt-4 flex items-center justify-between">

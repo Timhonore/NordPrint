@@ -44,7 +44,10 @@ export function WishlistButton({
           );
         }}
         className={cn(
-          "inline-flex items-center gap-2 rounded-lg border border-line bg-surface/90 px-2.5 py-2 backdrop-blur transition-colors hover:bg-surface",
+          // min-h-11: hjertet på et produktkort er et rigtigt tryk-mål, ikke
+          // pynt. 34 px er under det, en tommelfinger rammer pålideligt —
+          // WCAG 2.2 sætter grænsen ved 44.
+          "inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-lg border border-line bg-surface/90 px-2.5 py-2 backdrop-blur transition-colors hover:bg-surface",
           active && "border-negative/30 text-negative",
           showLabel && "px-3",
           className

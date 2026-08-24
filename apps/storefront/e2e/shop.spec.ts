@@ -38,6 +38,78 @@ test.describe("Forsiden", () => {
   });
 });
 
+/**
+ * Hele butikken på en telefon.
+ *
+ * Den her findes, fordi ovenstående test kun dækkede forsiden — og
+ * /konto/log-ind skubbede siden 157 px ud, uden at nogen opdagede det.
+ * Et enkelt grid-barn uden `min-w-0` er nok, og fejlen er usynlig på en
+ * bred skærm.
+ */
+test.describe("Mobil", () => {
+  const RUTER = [
+    "/",
+    "/filament",
+    "/filament/pla",
+    "/produkter",
+    "/produkt/nordprint-pla-basic",
+    "/kurv",
+    "/checkout",
+    "/find-filament",
+    "/sammenlign",
+    "/soeg?q=pla",
+    "/reservedele",
+    "/tilbehoer",
+    "/guides",
+    "/tilbud",
+    "/shop-efter-printer",
+    "/konto",
+    "/konto/log-ind",
+    "/konto/ordrer",
+    "/konto/favoritter",
+    "/levering",
+    "/kontakt",
+    "/privatliv",
+  ];
+
+  test("ingen side skubber layoutet ud til siden", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "mobil-360", "Kun relevant på den smalle viewport.");
+
+    const brudte: string[] = [];
+
+    for (const rute of RUTER) {
+      await page.goto(rute, { waitUntil: "domcontentloaded" });
+
+      // Nogle ruter omdirigerer (tom kurv → /kurv, /konto → login), og en
+      // måling midt i en navigation river konteksten væk under sig.
+      await page.waitForLoadState("load");
+      await expect(page.locator("main")).toBeVisible();
+
+      const over = await page.evaluate(
+        () => document.documentElement.scrollWidth - document.documentElement.clientWidth
+      );
+      if (over > 1) brudte.push(`${rute} (+${over}px)`);
+    }
+
+    expect(brudte, `Vandret overløb: ${brudte.join(", ")}`).toEqual([]);
+  });
+
+  test("hjertet på et produktkort er stort nok til en tommelfinger", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "mobil-360", "Kun relevant på den smalle viewport.");
+
+    await page.goto("/filament");
+
+    // WCAG 2.2 sætter grænsen ved 24 px, Apple og Google anbefaler 44.
+    // Et hjerte, man rammer ved siden af, gemmer den forkerte vare.
+    const knap = page.getByRole("button", { name: /som favorit/i }).first();
+    const box = await knap.boundingBox();
+
+    expect(box).not.toBeNull();
+    expect(box!.height).toBeGreaterThanOrEqual(44);
+    expect(box!.width).toBeGreaterThanOrEqual(44);
+  });
+});
+
 test.describe("Katalog", () => {
   test("filtrerer i URL'en og kan deles", async ({ page }) => {
     await page.goto("/filament");

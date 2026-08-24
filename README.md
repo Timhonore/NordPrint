@@ -47,6 +47,33 @@ Seed'en skriver selv den genererede publishable key til
 kan bruges til at handle. Alle seed-produkter er markeret
 `metadata.seed=nordprint-dev` — det er udviklingsdata, ikke rigtige varer.
 
+Opret en administrator, så du kan komme ind i admin på `localhost:9000/app`:
+
+```bash
+pnpm --filter @nordprint/commerce-backend exec medusa user \
+  --email dig@nordprint.dk --password <vælg-en>
+```
+
+### Se den på en rigtig telefon
+
+Emulatorer lyver om rulning, tastaturer og tryk-mål. Har du telefonen på
+samme wifi, kan du åbne udviklingsserveren direkte:
+
+```bash
+# Find maskinens adresse på netværket
+ipconfig getifaddr en0        # macOS
+hostname -I | awk '{print $1}' # Linux
+
+# Start med den adresse, så telefonen kan nå både storefront og API
+NEXT_PUBLIC_SITE_URL=http://192.168.1.42:8000 \
+NEXT_PUBLIC_MEDUSA_BACKEND_URL=http://192.168.1.42:9000 \
+STORE_CORS=http://192.168.1.42:8000 \
+pnpm dev
+```
+
+Åbn så `http://192.168.1.42:8000` på telefonen. Uden `STORE_CORS` blokerer
+backenden kaldene, og siden ser tom ud.
+
 ## Kommandoer
 
 ```bash
@@ -55,7 +82,7 @@ pnpm build            # bygger pakker og apps i rækkefølge
 pnpm lint             # ESLint
 pnpm format           # Prettier --write
 pnpm --recursive test # unit- og integrationstests (124)
-pnpm test:e2e         # Playwright, tre viewports (50)
+pnpm test:e2e         # Playwright, tre viewports (52)
 ```
 
 `pnpm test:e2e` starter selv backend og storefront. Er der allerede en
