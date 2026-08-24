@@ -14,7 +14,12 @@ import { MiniCart } from "@/components/cart/mini-cart";
  * does not know what is in this visitor's local storage, and rendering a
  * guessed number would flash the wrong value on every first paint.
  */
-export function HeaderActions(): React.JSX.Element {
+export function HeaderActions({
+  signedIn = false,
+}: {
+  /** Resolved on the server so the label is right on first paint. */
+  readonly signedIn?: boolean;
+} = {}): React.JSX.Element {
   const { wishlist, ready } = usePreferences();
 
   return (
@@ -42,7 +47,7 @@ export function HeaderActions(): React.JSX.Element {
         className={`${buttonVariants({ variant: "ghost", size: "icon" })} hidden sm:inline-flex`}
       >
         <UserIcon />
-        <VisuallyHidden>Min konto</VisuallyHidden>
+        <VisuallyHidden>{signedIn ? "Min konto" : "Log ind"}</VisuallyHidden>
       </Link>
 
       <MiniCart />

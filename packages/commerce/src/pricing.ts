@@ -11,7 +11,10 @@ const GRAMS_PER_KILOGRAM = 1000;
  * Returns `null` when the weight is missing or non-positive rather than
  * guessing, so the UI can simply omit the line instead of printing nonsense.
  */
-export function calculatePricePerKg(price: Money, netWeightG: number | null | undefined): Money | null {
+export function calculatePricePerKg(
+  price: Money,
+  netWeightG: number | null | undefined
+): Money | null {
   if (netWeightG === null || netWeightG === undefined) return null;
   if (!Number.isFinite(netWeightG) || netWeightG <= 0) return null;
   const perKg = (price.amount * GRAMS_PER_KILOGRAM) / netWeightG;

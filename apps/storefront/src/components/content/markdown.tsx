@@ -21,9 +21,7 @@ export function Markdown({
   readonly content: string;
   readonly className?: string;
 }): React.JSX.Element {
-  return (
-    <div className={cn("space-y-5", className)}>{renderBlocks(content)}</div>
-  );
+  return <div className={cn("space-y-5", className)}>{renderBlocks(content)}</div>;
 }
 
 function renderBlocks(content: string): React.JSX.Element[] {
@@ -90,7 +88,10 @@ function renderBlocks(content: string): React.JSX.Element[] {
         index += 1;
       }
       blocks.push(
-        <ul key={key++} className="ml-5 list-disc space-y-1.5 text-ink-soft marker:text-line-strong">
+        <ul
+          key={key++}
+          className="ml-5 list-disc space-y-1.5 text-ink-soft marker:text-line-strong"
+        >
           {items.map((item, itemIndex) => (
             <li key={itemIndex} className="leading-relaxed">
               {inline(item)}
@@ -109,7 +110,10 @@ function renderBlocks(content: string): React.JSX.Element[] {
         index += 1;
       }
       blocks.push(
-        <ol key={key++} className="ml-5 list-decimal space-y-1.5 text-ink-soft marker:text-ink-faint">
+        <ol
+          key={key++}
+          className="ml-5 list-decimal space-y-1.5 text-ink-soft marker:text-ink-faint"
+        >
           {items.map((item, itemIndex) => (
             <li key={itemIndex} className="leading-relaxed">
               {inline(item)}

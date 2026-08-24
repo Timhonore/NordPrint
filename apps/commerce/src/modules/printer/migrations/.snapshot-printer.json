@@ -1,7 +1,5 @@
 {
-  "namespaces": [
-    "public"
-  ],
+  "namespaces": ["public"],
   "name": "public",
   "tables": [
     {
@@ -167,9 +165,7 @@
         },
         {
           "keyName": "customer_printer_pkey",
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "primary": true,
@@ -350,9 +346,7 @@
         },
         {
           "keyName": "printer_brand_pkey",
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "primary": true,
@@ -542,9 +536,7 @@
         },
         {
           "keyName": "printer_family_pkey",
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "primary": true,
@@ -555,13 +547,9 @@
       "foreignKeys": {
         "printer_family_brand_id_foreign": {
           "constraintName": "printer_family_brand_id_foreign",
-          "columnNames": [
-            "brand_id"
-          ],
+          "columnNames": ["brand_id"],
           "localTableName": "public.printer_family",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.printer_brand",
           "updateRule": "cascade"
         }
@@ -631,10 +619,7 @@
           "scale": null,
           "default": "'fdm'",
           "comment": null,
-          "enumItems": [
-            "fdm",
-            "resin"
-          ],
+          "enumItems": ["fdm", "resin"],
           "mappedType": "enum"
         },
         "release_year": {
@@ -983,9 +968,7 @@
         },
         {
           "keyName": "printer_model_pkey",
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "primary": true,
@@ -996,13 +979,9 @@
       "foreignKeys": {
         "printer_model_family_id_foreign": {
           "constraintName": "printer_model_family_id_foreign",
-          "columnNames": [
-            "family_id"
-          ],
+          "columnNames": ["family_id"],
           "localTableName": "public.printer_model",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.printer_family",
           "updateRule": "cascade"
         }

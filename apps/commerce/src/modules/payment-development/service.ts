@@ -86,7 +86,9 @@ class DevelopmentPaymentProviderService extends AbstractPaymentProvider<Record<s
 
   async initiatePayment(input: InitiatePaymentInput): Promise<InitiatePaymentOutput> {
     const context = (input.context ?? {}) as Record<string, any>;
-    const scenario = readScenario(context.extra?.dev_payment_scenario ?? context.dev_payment_scenario);
+    const scenario = readScenario(
+      context.extra?.dev_payment_scenario ?? context.dev_payment_scenario
+    );
     const reference = `dev-${globalThis.crypto.randomUUID()}`;
 
     const data: DevSessionData = {
@@ -174,7 +176,10 @@ class DevelopmentPaymentProviderService extends AbstractPaymentProvider<Record<s
     }
 
     return {
-      data: { ...session, refunded: session.refunded + amount } as unknown as Record<string, unknown>,
+      data: { ...session, refunded: session.refunded + amount } as unknown as Record<
+        string,
+        unknown
+      >,
     };
   }
 

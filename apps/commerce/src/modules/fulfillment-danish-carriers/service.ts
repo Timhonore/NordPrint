@@ -82,10 +82,7 @@ class DanishCarriersFulfillmentService extends AbstractFulfillmentProviderServic
     const option = optionData as Partial<OptionData>;
 
     if (option.kind === "pickup_point" && !data.pickup_point_id) {
-      throw new MedusaError(
-        MedusaError.Types.INVALID_DATA,
-        "Vælg en pakkeshop før du går videre"
-      );
+      throw new MedusaError(MedusaError.Types.INVALID_DATA, "Vælg en pakkeshop før du går videre");
     }
 
     return { ...data, carrier_id: option.carrier_id, kind: option.kind };
@@ -107,7 +104,9 @@ class DanishCarriersFulfillmentService extends AbstractFulfillmentProviderServic
       throw new MedusaError(MedusaError.Types.INVALID_DATA, "Ukendt fragtmetode");
     }
 
-    const subtotalMinor = toMinorUnits((context as any)?.item_total ?? (context as any)?.total ?? 0);
+    const subtotalMinor = toMinorUnits(
+      (context as any)?.item_total ?? (context as any)?.total ?? 0
+    );
     const threshold = commerceConfig.shipping.freeShippingThreshold;
 
     // Free shipping applies to parcel deliveries. Business delivery is a
@@ -165,7 +164,9 @@ class DanishCarriersFulfillmentService extends AbstractFulfillmentProviderServic
     };
   }
 
-  override async cancelFulfillment(data: Record<string, unknown>): Promise<Record<string, unknown>> {
+  override async cancelFulfillment(
+    data: Record<string, unknown>
+  ): Promise<Record<string, unknown>> {
     this.logger_.info(
       `[fragt] Annullerer forsendelse ${String(data.tracking_number ?? "uden nummer")}`
     );

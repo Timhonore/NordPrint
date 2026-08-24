@@ -12,8 +12,8 @@ export function NewsletterSection(): React.JSX.Element {
               Nye materialer, før alle andre
             </h2>
             <p className="mt-3 max-w-md leading-relaxed text-white/70">
-              Vi skriver kun, når der faktisk er noget: nye farver, nye materialer og
-              guides, der løser et konkret problem.
+              Vi skriver kun, når der faktisk er noget: nye farver, nye materialer og guides, der
+              løser et konkret problem.
             </p>
           </div>
           <NewsletterForm className="md:justify-self-end md:max-w-md" />

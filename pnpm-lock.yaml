@@ -48,12 +48,24 @@ importers:
       '@medusajs/cli':
         specifier: 2.19.0
         version: 2.19.0(@types/node@22.20.1)
+      '@medusajs/dashboard':
+        specifier: 2.19.0
+        version: 2.19.0(@sinclair/typebox@0.34.52)(@standard-schema/spec@1.1.0)(@types/react-dom@19.2.4(@types/react@19.2.18))(@types/react@19.2.18)(ajv@8.13.0)(typescript@5.9.3)
+      '@medusajs/draft-order':
+        specifier: 2.19.0
+        version: 2.19.0(@medusajs/admin-sdk@2.19.0)(@medusajs/cli@2.19.0(@types/node@22.20.1))(@medusajs/dashboard@2.19.0(@sinclair/typebox@0.34.52)(@standard-schema/spec@1.1.0)(@types/react-dom@19.2.4(@types/react@19.2.18))(@types/react@19.2.18)(ajv@8.13.0)(typescript@5.9.3))(@medusajs/framework@2.19.0(@medusajs/cli@2.19.0(@types/node@22.20.1))(@types/node@22.20.1)(ioredis@5.11.1)(vite@5.4.21(@types/node@22.20.1)(lightningcss@1.33.0))(zod@4.4.3))(@medusajs/icons@2.19.0(react@18.3.1))(@medusajs/test-utils@2.19.0)(@medusajs/ui@4.2.1(@types/react-dom@19.2.4(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.9.3))(@sinclair/typebox@0.34.52)(@standard-schema/spec@1.1.0)(@types/react-dom@19.2.4(@types/react@19.2.18))(@types/react@19.2.18)(ajv@8.13.0)(react-dom@18.3.1(react@18.3.1))(react-router-dom@7.18.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
       '@medusajs/framework':
         specifier: 2.19.0
         version: 2.19.0(@medusajs/cli@2.19.0(@types/node@22.20.1))(@types/node@22.20.1)(ioredis@5.11.1)(vite@5.4.21(@types/node@22.20.1)(lightningcss@1.33.0))(zod@4.4.3)
+      '@medusajs/icons':
+        specifier: ^2.19.0
+        version: 2.19.0(react@18.3.1)
       '@medusajs/medusa':
         specifier: 2.19.0
         version: 2.19.0(3d8d95105b5ef80966f786ad50ec7052)
+      '@medusajs/ui':
+        specifier: ^4.2.1
+        version: 4.2.1(@types/react-dom@19.2.4(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.9.3)
       '@nordprint/commerce':
         specifier: workspace:*
         version: link:../../packages/commerce

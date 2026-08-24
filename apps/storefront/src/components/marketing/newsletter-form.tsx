@@ -101,8 +101,8 @@ export function NewsletterForm({ className }: { className?: string }): React.JSX
           className="mt-0.5 size-4 shrink-0 rounded border-white/25 bg-white/5 accent-[--color-accent]"
         />
         <span>
-          Ja tak, jeg vil gerne modtage nyhedsbrevet. Jeg kan afmelde når som helst, og mine
-          data behandles efter{" "}
+          Ja tak, jeg vil gerne modtage nyhedsbrevet. Jeg kan afmelde når som helst, og mine data
+          behandles efter{" "}
           <a href="/privatliv" className="underline hover:text-white">
             privatlivspolitikken
           </a>

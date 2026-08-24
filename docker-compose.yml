@@ -1,0 +1,89 @@
+# NordPrint — udviklingsstak.
+#
+# Starter kun de ting, der er besværlige at køre lokalt: PostgreSQL, Redis og
+# et S3-kompatibelt object storage. Selve apps'ene køres med `pnpm dev`, fordi
+# hot reload gennem en container-mount er markant langsommere og fejler på
+# forskellige måder på macOS, Linux og Windows.
+#
+#   docker compose up -d
+#   pnpm --filter @nordprint/commerce-backend migrate
+#   pnpm --filter @nordprint/commerce-backend seed
+#   pnpm dev
+#
+# Produktionsstakken ligger i docker-compose.production.yml.
+
+name: nordprint-dev
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: nordprint
+      POSTGRES_PASSWORD: nordprint
+      POSTGRES_DB: nordprint
+      # Dansk sortering, så ORDER BY på produktnavne får æ, ø og å rigtigt.
+      POSTGRES_INITDB_ARGS: "--locale=da_DK.UTF-8 --encoding=UTF8"
+      LANG: da_DK.utf8
+    ports:
+      # Kun bundet til loopback — databasen skal aldrig kunne nås udefra.
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nordprint -d nordprint"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    # Ingen persistens i udvikling: cache og køer må gerne være tomme efter
+    # en genstart, og det gør containeren hurtigere at starte.
+    command: redis-server --save "" --appendonly no
+    ports:
+      - "127.0.0.1:6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  # S3-kompatibelt storage, så billed-uploads virker med samme kode som i
+  # produktion (hvor det er Cloudflare R2).
+  minio:
+    image: minio/minio:latest
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: nordprint
+      MINIO_ROOT_PASSWORD: nordprint-dev-secret
+    ports:
+      - "127.0.0.1:9002:9000"
+      - "127.0.0.1:9001:9001"
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  # Opretter bucket'en én gang og stopper. Uden dette fejler første upload.
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 nordprint nordprint-dev-secret &&
+      mc mb --ignore-existing local/nordprint-media &&
+      mc anonymous set download local/nordprint-media &&
+      echo 'Bucket nordprint-media er klar.'
+      "
+
+volumes:
+  postgres-data:
+  minio-data:

@@ -41,9 +41,7 @@ export function CatalogView({
     <div className="container-page py-8 md:py-12">
       <header className="mb-6">
         <h1 className="text-3xl font-bold tracking-tight md:text-4xl">{title}</h1>
-        {description ? (
-          <p className="mt-2 max-w-2xl text-ink-soft">{description}</p>
-        ) : null}
+        {description ? <p className="mt-2 max-w-2xl text-ink-soft">{description}</p> : null}
       </header>
 
       <div className="lg:grid lg:grid-cols-[16rem_1fr] lg:gap-8">

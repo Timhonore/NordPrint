@@ -197,9 +197,12 @@ export class MobilePayClient {
   }
 
   async getPayment(reference: string): Promise<MobilePayPayment> {
-    return this.request<MobilePayPayment>(`/epayment/v1/payments/${encodeURIComponent(reference)}`, {
-      method: "GET",
-    });
+    return this.request<MobilePayPayment>(
+      `/epayment/v1/payments/${encodeURIComponent(reference)}`,
+      {
+        method: "GET",
+      }
+    );
   }
 
   async capture(

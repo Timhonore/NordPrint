@@ -1,5 +1,9 @@
 import type { MedusaRequest, MedusaResponse } from "@medusajs/framework/http";
-import { CARRIERS, carrierById, resolveAdapter } from "../../../../modules/fulfillment-danish-carriers/carriers";
+import {
+  CARRIERS,
+  carrierById,
+  resolveAdapter,
+} from "../../../../modules/fulfillment-danish-carriers/carriers";
 
 /**
  * GET /store/nordprint/pickup-points?postal_code=8000&carrier=gls

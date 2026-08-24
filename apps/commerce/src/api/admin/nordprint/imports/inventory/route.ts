@@ -23,10 +23,7 @@ import type ProcurementModuleService from "../../../../../modules/procurement/se
  * nothing is written: a half-applied stock import is worse than no import,
  * because nobody can tell which half landed.
  */
-export async function POST(
-  req: AuthenticatedMedusaRequest,
-  res: MedusaResponse
-): Promise<void> {
+export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse): Promise<void> {
   const body = (req.body ?? {}) as { csv?: string; commit?: boolean; force?: boolean };
 
   if (typeof body.csv !== "string" || body.csv.trim().length === 0) {

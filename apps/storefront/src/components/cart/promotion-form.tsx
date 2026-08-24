@@ -12,11 +12,7 @@ import { applyPromotionCode, removePromotionCode } from "@/lib/cart/actions";
  * Codes are validated by the backend — the storefront never decides whether a
  * discount applies, it only shows the answer.
  */
-export function PromotionForm({
-  codes,
-}: {
-  readonly codes: readonly string[];
-}): React.JSX.Element {
+export function PromotionForm({ codes }: { readonly codes: readonly string[] }): React.JSX.Element {
   const router = useRouter();
   const [code, setCode] = React.useState("");
   const [status, setStatus] = React.useState<"idle" | "sending" | "error">("idle");
@@ -85,7 +81,11 @@ export function PromotionForm({
             status === "error" ? "border-negative" : "border-line focus:border-accent"
           )}
         />
-        <Button type="submit" variant="secondary" disabled={status === "sending" || code.length === 0}>
+        <Button
+          type="submit"
+          variant="secondary"
+          disabled={status === "sending" || code.length === 0}
+        >
           {status === "sending" ? "…" : "Anvend"}
         </Button>
       </form>

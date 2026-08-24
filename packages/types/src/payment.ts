@@ -19,13 +19,7 @@ export const PAYMENT_METHOD_KINDS = [
 export type PaymentMethodKind = (typeof PAYMENT_METHOD_KINDS)[number];
 
 export type PaymentSessionStatus =
-  | "pending"
-  | "requires_action"
-  | "authorized"
-  | "captured"
-  | "canceled"
-  | "refunded"
-  | "failed";
+  "pending" | "requires_action" | "authorized" | "captured" | "canceled" | "refunded" | "failed";
 
 export interface PaymentContext {
   readonly cartId: string;

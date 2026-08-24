@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { Card, CardBody, TechLabel } from "@nordprint/ui";
 import { CartIcon, HeartIcon, PrinterIcon, TruckIcon, UserIcon } from "@/components/icons";
+import { SignInRequired } from "@/components/account/sign-in-required";
+import { getCustomer } from "@/lib/account/session";
 
 const SHORTCUTS = [
   {
@@ -35,13 +37,28 @@ const SHORTCUTS = [
   },
 ] as const;
 
-export default function AccountPage(): React.JSX.Element {
+export default async function AccountPage(): Promise<React.JSX.Element> {
+  const customer = await getCustomer();
+
   return (
     <div>
       <TechLabel>Oversigt</TechLabel>
       <p className="mb-6 mt-1.5 text-ink-soft">
-        Alt om dine køb, dine printere og dine oplysninger ét sted.
+        {customer
+          ? `Hej ${customer.firstName ?? customer.email} — alt om dine køb, dine printere og dine oplysninger ét sted.`
+          : "Alt om dine køb, dine printere og dine oplysninger ét sted."}
       </p>
+
+      {!customer ? (
+        <div className="mb-6">
+          <SignInRequired
+            icon={<UserIcon className="size-8" />}
+            title="Log ind for at samle det hele"
+            description="Ordrer, adresser og favoritter følger med kontoen. Du kan stadig handle som gæst."
+            returnTo="/konto"
+          />
+        </div>
+      ) : null}
 
       <ul className="grid gap-4 sm:grid-cols-2">
         {SHORTCUTS.map(({ href, title, description, Icon }) => (

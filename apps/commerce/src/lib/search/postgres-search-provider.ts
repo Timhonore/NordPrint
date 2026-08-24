@@ -8,11 +8,7 @@ import type {
   ProductSummary,
   SearchSuggestionResult,
 } from "@nordprint/types";
-import {
-  COLOR_FAMILY_LABELS,
-  FINISH_LABELS,
-  MATERIAL_LABELS,
-} from "@nordprint/types";
+import { COLOR_FAMILY_LABELS, FINISH_LABELS, MATERIAL_LABELS } from "@nordprint/types";
 import {
   aggregateStockStatus,
   calculatePricePerKg,
@@ -244,10 +240,7 @@ export class PostgresSearchProvider implements SearchProvider {
   }
 
   /** Loads full variant rows for a page of products and assembles summaries. */
-  private async loadProducts(
-    productIds: string[],
-    sort: ProductSort
-  ): Promise<ProductSummary[]> {
+  private async loadProducts(productIds: string[], sort: ProductSort): Promise<ProductSummary[]> {
     if (productIds.length === 0) return [];
 
     const result = await this.knex.raw(
@@ -303,8 +296,8 @@ export class PostgresSearchProvider implements SearchProvider {
       return (result.rows ?? []) as { value: string; count: number }[];
     };
 
-    const [materials, finishes, brands, colors, diameters, weights, priceRange] =
-      await Promise.all([
+    const [materials, finishes, brands, colors, diameters, weights, priceRange] = await Promise.all(
+      [
         countFor("material", "material"),
         countFor("finish", "finish"),
         countFor("brand_handle", "brand"),
@@ -312,7 +305,8 @@ export class PostgresSearchProvider implements SearchProvider {
         countFor("diameter_mm", "diameter"),
         countFor("net_weight_g", "spoolWeight"),
         this.loadPriceRange(query),
-      ]);
+      ]
+    );
 
     const colorHexByFamily = await this.loadColorHexes(colors.map((entry) => entry.value));
     const brandNames = await this.loadBrandNames(brands.map((entry) => entry.value));
@@ -322,77 +316,65 @@ export class PostgresSearchProvider implements SearchProvider {
         key: "material",
         label: "Materiale",
         type: "checkbox",
-        values: materials.map(
-          (entry): FacetValue => ({
-            value: entry.value,
-            label: MATERIAL_LABELS[entry.value as keyof typeof MATERIAL_LABELS] ?? entry.value,
-            count: entry.count,
-          })
-        ),
+        values: materials.map((entry): FacetValue => ({
+          value: entry.value,
+          label: MATERIAL_LABELS[entry.value as keyof typeof MATERIAL_LABELS] ?? entry.value,
+          count: entry.count,
+        })),
       },
       {
         key: "brand",
         label: "Brand",
         type: "checkbox",
-        values: brands.map(
-          (entry): FacetValue => ({
-            value: entry.value,
-            label: brandNames.get(entry.value) ?? entry.value,
-            count: entry.count,
-          })
-        ),
+        values: brands.map((entry): FacetValue => ({
+          value: entry.value,
+          label: brandNames.get(entry.value) ?? entry.value,
+          count: entry.count,
+        })),
       },
       {
         key: "color",
         label: "Farve",
         type: "swatch",
-        values: colors.map(
-          (entry): FacetValue => ({
-            value: entry.value,
-            label: COLOR_FAMILY_LABELS[entry.value as ColorFamily] ?? entry.value,
-            count: entry.count,
-            hex: colorHexByFamily.get(entry.value) ?? null,
-          })
-        ),
+        values: colors.map((entry): FacetValue => ({
+          value: entry.value,
+          label: COLOR_FAMILY_LABELS[entry.value as ColorFamily] ?? entry.value,
+          count: entry.count,
+          hex: colorHexByFamily.get(entry.value) ?? null,
+        })),
       },
       {
         key: "finish",
         label: "Finish",
         type: "checkbox",
-        values: finishes.map(
-          (entry): FacetValue => ({
-            value: entry.value,
-            label: FINISH_LABELS[entry.value as keyof typeof FINISH_LABELS] ?? entry.value,
-            count: entry.count,
-          })
-        ),
+        values: finishes.map((entry): FacetValue => ({
+          value: entry.value,
+          label: FINISH_LABELS[entry.value as keyof typeof FINISH_LABELS] ?? entry.value,
+          count: entry.count,
+        })),
       },
       {
         key: "diameter",
         label: "Diameter",
         type: "checkbox",
-        values: diameters.map(
-          (entry): FacetValue => ({
-            value: String(entry.value),
-            label: `${String(entry.value).replace(".", ",")} mm`,
-            count: entry.count,
-          })
-        ),
+        values: diameters.map((entry): FacetValue => ({
+          value: String(entry.value),
+          label: `${String(entry.value).replace(".", ",")} mm`,
+          count: entry.count,
+        })),
       },
       {
         key: "vaegt",
         label: "Spolevægt",
         type: "checkbox",
-        values: weights.map(
-          (entry): FacetValue => ({
-            value: String(entry.value),
-            label:
-              Number(entry.value) % 1000 === 0
-                ? `${Number(entry.value) / 1000} kg`
-                : `${entry.value} g`,
-            count: entry.count,
-          })
-        ),
+        values: weights.map((entry): FacetValue => ({
+          value: String(entry.value),
+          label:
+            Number(entry.value) % 1000 === 0
+              ? `${Number(entry.value) / 1000} kg`
+              : `${entry.value} g`,
+          count: entry.count,
+        })),
       },
       {
         key: "pris",
@@ -479,16 +461,49 @@ export class PostgresSearchProvider implements SearchProvider {
 
     if (query.q) {
       const parsed = parseSearchTerm(query.q);
+
       if (parsed.tokens.length > 0) {
-        clauses.push(`(
-          LOWER(product_title) LIKE ANY(:searchPatterns)
-          OR LOWER(COALESCE(product_subtitle, '')) LIKE ANY(:searchPatterns)
-          OR LOWER(COALESCE(brand_name, '')) LIKE ANY(:searchPatterns)
-          OR LOWER(COALESCE(color_name, '')) LIKE ANY(:searchPatterns)
-          OR LOWER(COALESCE(variant_sku, '')) LIKE ANY(:searchPatterns)
-          OR LOWER(COALESCE(material_variant, '')) LIKE ANY(:searchPatterns)
-        )`);
-        bindings.searchPatterns = toLikePatterns(parsed);
+        // A free-text query is matched two ways at once, and a row qualifies
+        // if it satisfies *all* the structured hints and the remaining text.
+        //
+        // "sort pla" is the case that forces this: no single column contains
+        // both words, so a plain LIKE finds nothing. Parsing it into
+        // colour=black + material=pla finds exactly what the customer meant.
+        const conditions: string[] = [];
+
+        if (parsed.materials.length > 0) {
+          conditions.push("material = ANY(:searchMaterials)");
+          bindings.searchMaterials = [...parsed.materials];
+        }
+
+        if (parsed.colors.length > 0) {
+          conditions.push("color_family = ANY(:searchColors)");
+          bindings.searchColors = [...parsed.colors];
+        }
+
+        if (parsed.diameters.length > 0) {
+          conditions.push("diameter_mm = ANY(:searchDiameters)");
+          bindings.searchDiameters = [...parsed.diameters];
+        }
+
+        // Whatever the parser could not classify is matched as text. Tokens
+        // it *did* classify are dropped from the pattern, so "sort pla" does
+        // not also demand the literal string "sort pla" somewhere.
+        if (parsed.free.length > 0) {
+          conditions.push(`(
+            LOWER(product_title) LIKE ANY(:searchPatterns)
+            OR LOWER(COALESCE(product_subtitle, '')) LIKE ANY(:searchPatterns)
+            OR LOWER(COALESCE(brand_name, '')) LIKE ANY(:searchPatterns)
+            OR LOWER(COALESCE(color_name, '')) LIKE ANY(:searchPatterns)
+            OR LOWER(COALESCE(variant_sku, '')) LIKE ANY(:searchPatterns)
+            OR LOWER(COALESCE(material_variant, '')) LIKE ANY(:searchPatterns)
+          )`);
+          bindings.searchPatterns = toLikePatterns(parsed, true);
+        }
+
+        // Nothing classified and nothing left over can only happen for input
+        // that is entirely punctuation — then the query is simply unfiltered.
+        if (conditions.length > 0) clauses.push(`(${conditions.join(" AND ")})`);
       }
     }
 
@@ -647,9 +662,7 @@ function toProductSummary(rows: VariantRow[], _sort: ProductSort): ProductSummar
     categories: [],
     priceFrom: minAmount === null ? null : { amount: minAmount, currencyCode },
     compareAtPriceFrom:
-      compareAmounts.length > 0
-        ? { amount: Math.max(...compareAmounts), currencyCode }
-        : null,
+      compareAmounts.length > 0 ? { amount: Math.max(...compareAmounts), currencyCode } : null,
     pricePerKgFrom: pricePerKg,
     stock: aggregateStockStatus(stockStatuses),
     variantCount: rows.length,

@@ -33,12 +33,10 @@ export default async function FindFilamentPage(): Promise<React.JSX.Element> {
       <div className="border-b border-line bg-surface">
         <div className="container-page py-10 md:py-14">
           <TechLabel>Guidet valg</TechLabel>
-          <h1 className="mt-2 max-w-2xl text-3xl font-bold tracking-tight md:text-4xl">
-            {TITLE}
-          </h1>
+          <h1 className="mt-2 max-w-2xl text-3xl font-bold tracking-tight md:text-4xl">{TITLE}</h1>
           <p className="mt-3 max-w-xl text-lg leading-relaxed text-ink-soft">
-            Svar på fire spørgsmål. Vi anbefaler ud fra materialets egenskaber, din printer
-            og hvad der rent faktisk er på lager — og vi skriver altid hvorfor.
+            Svar på fire spørgsmål. Vi anbefaler ud fra materialets egenskaber, din printer og hvad
+            der rent faktisk er på lager — og vi skriver altid hvorfor.
           </p>
         </div>
       </div>

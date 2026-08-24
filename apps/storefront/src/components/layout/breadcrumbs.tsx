@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { siteConfig } from "@nordprint/config";
 import { ChevronRightIcon } from "@/components/icons";
+import { JsonLd } from "@/lib/seo/json-ld";
 
 export interface Crumb {
   readonly label: string;
@@ -36,7 +37,10 @@ export function Breadcrumbs({ items }: { readonly items: readonly Crumb[] }): Re
             return (
               <li key={crumb.href} className="flex items-center gap-1">
                 {index > 0 ? (
-                  <ChevronRightIcon className="size-3.5 shrink-0 text-ink-faint" aria-hidden="true" />
+                  <ChevronRightIcon
+                    className="size-3.5 shrink-0 text-ink-faint"
+                    aria-hidden="true"
+                  />
                 ) : null}
                 {last ? (
                   <span aria-current="page" className="text-ink-soft">
@@ -52,10 +56,7 @@ export function Breadcrumbs({ items }: { readonly items: readonly Crumb[] }): Re
           })}
         </ol>
       </div>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-      />
+      <JsonLd schema={schema} />
     </nav>
   );
 }

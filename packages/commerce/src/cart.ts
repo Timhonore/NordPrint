@@ -26,9 +26,7 @@ export function calculateFreeShippingProgress(
   }
 
   const qualified = subtotal.amount >= threshold.amount;
-  const remaining = qualified
-    ? zero(subtotal.currencyCode)
-    : subtractMoney(threshold, subtotal);
+  const remaining = qualified ? zero(subtotal.currencyCode) : subtractMoney(threshold, subtotal);
 
   return {
     enabled: true,

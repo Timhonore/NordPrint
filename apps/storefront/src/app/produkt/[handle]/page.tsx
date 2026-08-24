@@ -14,6 +14,7 @@ import { ProductPurchasePanel } from "@/components/product/product-purchase-pane
 import { FilamentSpecs } from "@/components/product/filament-specs";
 import { ProductReviews } from "@/components/product/product-reviews";
 import { RelatedProducts } from "@/components/product/related-products";
+import { JsonLd } from "@/lib/seo/json-ld";
 
 /**
  * Product detail page.
@@ -81,7 +82,9 @@ export default async function ProductPage({
           ...(product.kind === "filament"
             ? [{ label: "Filament", href: "/filament" }]
             : [{ label: "Produkter", href: "/produkter" }]),
-          ...(category ? [{ label: category.name, href: `/produkter?kategori=${category.handle}` }] : []),
+          ...(category
+            ? [{ label: category.name, href: `/produkter?kategori=${category.handle}` }]
+            : []),
           { label: product.title, href: `/produkt/${product.handle}` },
         ]}
       />
@@ -195,9 +198,7 @@ function ProductSchema({ product }: { product: ProductDetail }): React.JSX.Eleme
     .filter((amount): amount is number => typeof amount === "number");
 
   const currency = product.priceFrom?.currencyCode ?? "DKK";
-  const available = product.variants.some(
-    (variant) => variant.stock.status !== "out_of_stock"
-  );
+  const available = product.variants.some((variant) => variant.stock.status !== "out_of_stock");
 
   const schema = {
     "@context": "https://schema.org",
@@ -207,12 +208,8 @@ function ProductSchema({ product }: { product: ProductDetail }): React.JSX.Eleme
     description: product.description ?? product.subtitle ?? undefined,
     sku: product.variants[0]?.sku ?? undefined,
     ...(product.thumbnail ? { image: [product.thumbnail] } : {}),
-    ...(product.brand
-      ? { brand: { "@type": "Brand", name: product.brand.name } }
-      : {}),
-    ...(product.material
-      ? { material: MATERIAL_LABELS[product.material] }
-      : {}),
+    ...(product.brand ? { brand: { "@type": "Brand", name: product.brand.name } } : {}),
+    ...(product.material ? { material: MATERIAL_LABELS[product.material] } : {}),
     ...(product.averageRating !== null && product.reviewCount > 0
       ? {
           aggregateRating: {
@@ -240,12 +237,7 @@ function ProductSchema({ product }: { product: ProductDetail }): React.JSX.Eleme
       : {}),
   };
 
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-    />
-  );
+  return <JsonLd schema={schema} />;
 }
 
 export { formatMoney };

@@ -21,7 +21,10 @@ export async function GET(req: MedusaRequest, res: MedusaResponse): Promise<void
       handle: string;
       logoUrl: string | null;
       rank: number;
-      families: Map<string, { id: string; name: string; handle: string; rank: number; models: unknown[] }>;
+      families: Map<
+        string,
+        { id: string; name: string; handle: string; rank: number; models: unknown[] }
+      >;
     }
   >();
 

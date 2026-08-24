@@ -222,15 +222,15 @@ function Datasheets({ spec }: { spec: FilamentSpec }): React.JSX.Element {
         <TechLabel className="mb-3 block">Specifikationer</TechLabel>
         <dl>
           <SpecRow label="Diameter" value={`${String(spec.diameterMm).replace(".", ",")} mm`} />
-          <SpecRow
-            label="Nettovægt"
-            value={formatSpoolWeight(spec.netFilamentWeightG) ?? "—"}
-          />
+          <SpecRow label="Nettovægt" value={formatSpoolWeight(spec.netFilamentWeightG) ?? "—"} />
           {spec.grossWeightG !== null ? (
             <SpecRow label="Bruttovægt" value={`${spec.grossWeightG} g`} />
           ) : null}
           {spec.densityGCm3 !== null ? (
-            <SpecRow label="Massefylde" value={`${String(spec.densityGCm3).replace(".", ",")} g/cm³`} />
+            <SpecRow
+              label="Massefylde"
+              value={`${String(spec.densityGCm3).replace(".", ",")} g/cm³`}
+            />
           ) : null}
           {spec.spoolMaterial ? <SpecRow label="Spole" value={spec.spoolMaterial} /> : null}
         </dl>

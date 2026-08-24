@@ -98,11 +98,7 @@ export class DevelopmentCarrierAdapter implements CarrierAdapter {
       city,
       countryCode: "dk",
       distanceMeters: (index + 1) * 350,
-      openingHours: [
-        "Man-fre: 07.00-20.00",
-        "Lør: 08.00-18.00",
-        "Søn: 10.00-16.00",
-      ],
+      openingHours: ["Man-fre: 07.00-20.00", "Lør: 08.00-18.00", "Søn: 10.00-16.00"],
       latitude: null,
       longitude: null,
     }));

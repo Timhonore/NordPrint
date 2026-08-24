@@ -118,7 +118,7 @@ export function MiniCart(): React.JSX.Element {
           </span>
         ) : null}
         <VisuallyHidden>
-          Kurv{itemCount > 0 ? `, ${itemCount} varer` : ", tom"}
+          {itemCount > 0 ? `Kurv, ${itemCount} ${itemCount === 1 ? "vare" : "varer"}` : "Kurv, tom"}
         </VisuallyHidden>
       </Button>
 
@@ -180,7 +180,11 @@ export function MiniCart(): React.JSX.Element {
                   title="Kurven er tom"
                   description="Find filament, reservedele eller udstyr — så samler vi det her."
                   action={
-                    <Link href="/filament" className={buttonVariants({})} onClick={() => setOpen(false)}>
+                    <Link
+                      href="/filament"
+                      className={buttonVariants({})}
+                      onClick={() => setOpen(false)}
+                    >
                       Shop filament
                     </Link>
                   }

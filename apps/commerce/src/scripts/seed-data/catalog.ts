@@ -121,13 +121,20 @@ export const SEED_CATEGORIES = [
   { name: "Dyser", handle: "reservedele-dyser", parent: "reservedele", rank: 1 },
   { name: "Hotends", handle: "reservedele-hotends", parent: "reservedele", rank: 2 },
   { name: "Build plates", handle: "reservedele-build-plates", parent: "reservedele", rank: 3 },
+  { name: "Ekstrudere", handle: "reservedele-ekstrudere", parent: "reservedele", rank: 4 },
+  { name: "Remme & lejer", handle: "reservedele-remme-og-lejer", parent: "reservedele", rank: 5 },
 
   { name: "Tilbehør", handle: "tilbehoer", parent: null, rank: 3 },
   { name: "Filamenttørrere", handle: "tilbehoer-filamenttoerrere", parent: "tilbehoer", rank: 1 },
   { name: "Opbevaring", handle: "tilbehoer-opbevaring", parent: "tilbehoer", rank: 2 },
   { name: "Vedligeholdelse", handle: "tilbehoer-vedligeholdelse", parent: "tilbehoer", rank: 3 },
+  { name: "Resin", handle: "tilbehoer-resin", parent: "tilbehoer", rank: 4 },
+  { name: "Lim & adhæsion", handle: "tilbehoer-adhaesion", parent: "tilbehoer", rank: 5 },
 
   { name: "Værktøj", handle: "vaerktoej", parent: null, rank: 4 },
+  { name: "Håndværktøj", handle: "vaerktoej-haandvaerktoej", parent: "vaerktoej", rank: 1 },
+  { name: "Efterbehandling", handle: "vaerktoej-efterbehandling", parent: "vaerktoej", rank: 2 },
+  { name: "Måleværktøj", handle: "vaerktoej-maalevaerktoej", parent: "vaerktoej", rank: 3 },
 ];
 
 /** Attribute definitions for the typed long tail. */

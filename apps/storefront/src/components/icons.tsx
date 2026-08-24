@@ -10,7 +10,10 @@ import * as React from "react";
  */
 type IconProps = React.SVGProps<SVGSVGElement>;
 
-function Icon({ children, ...props }: IconProps & { children: React.ReactNode }): React.JSX.Element {
+function Icon({
+  children,
+  ...props
+}: IconProps & { children: React.ReactNode }): React.JSX.Element {
   return (
     <svg
       viewBox="0 0 24 24"

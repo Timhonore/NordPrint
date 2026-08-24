@@ -1,5 +1,12 @@
 import Link from "next/link";
-import { SpoolIcon, PrinterIcon, ThermometerIcon, ScaleIcon, TruckIcon, LeafIcon } from "@/components/icons";
+import {
+  SpoolIcon,
+  PrinterIcon,
+  ThermometerIcon,
+  ScaleIcon,
+  TruckIcon,
+  LeafIcon,
+} from "@/components/icons";
 
 /**
  * Front-page category tiles.
@@ -24,11 +31,36 @@ const CATEGORIES: readonly CategoryTile[] = [
     Icon: SpoolIcon,
     featured: true,
   },
-  { title: "3D-printere", description: "Maskiner og opgraderinger", href: "/3d-printere", Icon: PrinterIcon },
-  { title: "Dyser & hotends", description: "Messing, hærdet stål og keramik", href: "/reservedele/dyser", Icon: ThermometerIcon },
-  { title: "Build plates", description: "PEI, textured og glat", href: "/reservedele/build-plates", Icon: ScaleIcon },
-  { title: "Tørring & opbevaring", description: "Hold filamentet tørt", href: "/tilbehoer/filamenttoerrere", Icon: LeafIcon },
-  { title: "Værktøj", description: "Efterbehandling og vedligehold", href: "/vaerktoej", Icon: TruckIcon },
+  {
+    title: "3D-printere",
+    description: "Maskiner og opgraderinger",
+    href: "/3d-printere",
+    Icon: PrinterIcon,
+  },
+  {
+    title: "Dyser & hotends",
+    description: "Messing, hærdet stål og keramik",
+    href: "/reservedele/dyser",
+    Icon: ThermometerIcon,
+  },
+  {
+    title: "Build plates",
+    description: "PEI, textured og glat",
+    href: "/reservedele/build-plates",
+    Icon: ScaleIcon,
+  },
+  {
+    title: "Tørring & opbevaring",
+    description: "Hold filamentet tørt",
+    href: "/tilbehoer/filamenttoerrere",
+    Icon: LeafIcon,
+  },
+  {
+    title: "Værktøj",
+    description: "Efterbehandling og vedligehold",
+    href: "/vaerktoej",
+    Icon: TruckIcon,
+  },
 ];
 
 export function CategoryGrid(): React.JSX.Element {

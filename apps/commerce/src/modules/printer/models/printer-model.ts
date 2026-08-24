@@ -37,8 +37,4 @@ export const PrinterModel = model
 
     family: model.belongsTo(() => PrinterFamily, { mappedBy: "models" }),
   })
-  .indexes([
-    { on: ["handle"], unique: true },
-    { on: ["family_id"] },
-    { on: ["active"] },
-  ]);
+  .indexes([{ on: ["handle"], unique: true }, { on: ["family_id"] }, { on: ["active"] }]);

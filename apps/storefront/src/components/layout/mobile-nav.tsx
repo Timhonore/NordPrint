@@ -118,7 +118,13 @@ export function MobileNav({
               <PrinterPill className="w-full justify-between" />
             </div>
 
-            <nav aria-label="Mobilmenu" className="flex-1 overflow-y-auto overscroll-contain p-2">
+            {/*
+              Same landmark name as the desktop mega-menu: it is the same
+              menu, and only one of the two is ever in the accessibility tree.
+              Two names for one navigation would make a screen-reader's
+              landmark list read as if the site had two main menus.
+            */}
+            <nav aria-label="Hovedmenu" className="flex-1 overflow-y-auto overscroll-contain p-2">
               <ul className="space-y-0.5">
                 {primaryNavigation.map((entry) => {
                   const columns = entry.columns ?? [];

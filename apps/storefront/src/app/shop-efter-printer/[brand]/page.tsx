@@ -64,8 +64,8 @@ export default async function PrinterBrandPage({ params }: PageProps): Promise<R
           Tilbehør til {printerBrand.name}
         </h1>
         <p className="mb-10 max-w-2xl text-ink-soft">
-          Vælg din model, så filtrerer vi sortimentet efter, hvad vi har registreret som
-          passende til netop den.
+          Vælg din model, så filtrerer vi sortimentet efter, hvad vi har registreret som passende
+          til netop den.
         </p>
 
         <div className="space-y-8">

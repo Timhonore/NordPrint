@@ -1,0 +1,186 @@
+name: CI
+
+# Kører på pull requests og på main. Deploy sker i et separat workflow, som
+# kun starter, når dette er grønt — der bliver aldrig deployet en build, der
+# ikke er testet.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# En ny commit på samme branch afløser den forrige kørsel. Sparer runnertid
+# og fjerner forvirringen ved at se resultatet af en forældet commit.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: "22"
+  # Alle test- og bygge-trin bruger den samme fiktive konfiguration, så en
+  # manglende hemmelighed aldrig kan få CI til at fejle på noget, der intet
+  # har med koden at gøre.
+  NEXT_PUBLIC_SITE_URL: http://localhost:8000
+  NEXT_PUBLIC_MEDUSA_BACKEND_URL: http://localhost:9000
+  MEDUSA_PUBLISHABLE_KEY: pk_ci_placeholder
+
+jobs:
+  verify:
+    name: Lint, typer, tests og build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: nordprint
+          POSTGRES_PASSWORD: nordprint
+          POSTGRES_DB: nordprint_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U nordprint"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Installér afhængigheder
+        # --frozen-lockfile fejler, hvis pnpm-lock.yaml ikke matcher
+        # package.json. Det er hele pointen: CI skal bygge præcis det, der
+        # er committet, ikke det nyeste, der tilfældigvis findes i dag.
+        run: pnpm install --frozen-lockfile
+
+      - name: Byg delte pakker
+        # Storefront og backend typechecker mod pakkernes dist, så de skal
+        # bygges først.
+        run: pnpm --filter "./packages/*" --sequential build
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Formatering
+        run: pnpm format:check
+
+      - name: Typecheck
+        run: pnpm --recursive --sequential typecheck
+
+      - name: Unit- og integrationstests
+        run: pnpm --recursive --sequential test
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgres://nordprint:nordprint@localhost:5432/nordprint_test
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: ci-only-jwt-secret
+          COOKIE_SECRET: ci-only-cookie-secret
+
+      - name: Migrationer kører rent
+        # Fanger en model, hvis migration er glemt, eller som ikke kan
+        # anvendes på en tom database.
+        run: pnpm --filter @nordprint/commerce-backend migrate
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgres://nordprint:nordprint@localhost:5432/nordprint_test
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: ci-only-jwt-secret
+          COOKIE_SECRET: ci-only-cookie-secret
+
+      - name: Build
+        run: pnpm --filter "./apps/*" --sequential build
+        env:
+          NODE_ENV: production
+          DATABASE_URL: postgres://nordprint:nordprint@localhost:5432/nordprint_test
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: ci-only-jwt-secret
+          COOKIE_SECRET: ci-only-cookie-secret
+
+  e2e:
+    name: End-to-end
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    # Kører først, når alt andet er grønt: en e2e-kørsel tager minutter, og
+    # der er ingen grund til at bruge dem på kode, der ikke typechecker.
+    needs: verify
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: nordprint
+          POSTGRES_PASSWORD: nordprint
+          POSTGRES_DB: nordprint_e2e
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U nordprint"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+    env:
+      NODE_ENV: development
+      DATABASE_URL: postgres://nordprint:nordprint@localhost:5432/nordprint_e2e
+      REDIS_URL: redis://localhost:6379
+      JWT_SECRET: e2e-only-jwt-secret
+      COOKIE_SECRET: e2e-only-cookie-secret
+      STORE_CORS: http://localhost:8000
+      ADMIN_CORS: http://localhost:9000
+      AUTH_CORS: http://localhost:8000,http://localhost:9000
+      MEDUSA_BACKEND_URL: http://localhost:9000
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter "./packages/*" --sequential build
+
+      - name: Migrér og seed
+        run: |
+          pnpm --filter @nordprint/commerce-backend migrate
+          pnpm --filter @nordprint/commerce-backend seed
+
+      - name: Installér Playwright-browser
+        run: pnpm --filter @nordprint/storefront exec playwright install --with-deps chromium
+
+      - name: Kør e2e
+        # Playwright starter selv både backend og storefront — se
+        # apps/storefront/playwright.config.ts.
+        run: pnpm test:e2e
+
+      - name: Gem rapport ved fejl
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: apps/storefront/playwright-report/
+          retention-days: 7

@@ -54,8 +54,7 @@ export function catalogMetadata(options: {
   const filtered = countActiveFilters(options.query) > 0;
   const page = options.query.page ?? 1;
 
-  const canonical =
-    page > 1 ? `${options.basePath}?side=${page}` : options.basePath;
+  const canonical = page > 1 ? `${options.basePath}?side=${page}` : options.basePath;
 
   return {
     title: page > 1 ? `${options.title} — side ${page}` : options.title,

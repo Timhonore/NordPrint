@@ -39,10 +39,10 @@ export async function fetchCatalog(
   if (extra.kind) params.set("kind", extra.kind);
 
   const suffix = params.toString();
-  return apiFetch<ProductSearchResult>(
-    `/store/nordprint/catalog${suffix ? `?${suffix}` : ""}`,
-    { revalidate: 60, tags: [CACHE_TAGS.catalog] }
-  );
+  return apiFetch<ProductSearchResult>(`/store/nordprint/catalog${suffix ? `?${suffix}` : ""}`, {
+    revalidate: 60,
+    tags: [CACHE_TAGS.catalog],
+  });
 }
 
 export async function fetchProduct(

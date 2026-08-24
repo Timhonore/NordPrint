@@ -6,6 +6,7 @@ import { SiteFooter } from "@/components/layout/site-footer";
 import { CookieConsent } from "@/components/consent/cookie-consent";
 import { fetchBrands, fetchPrinters } from "@/lib/api/catalog";
 import "./globals.css";
+import { JsonLd } from "@/lib/seo/json-ld";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
@@ -124,11 +125,5 @@ function OrganizationSchema(): React.JSX.Element {
     ],
   };
 
-  return (
-    <script
-      type="application/ld+json"
-      // Values come from our own configuration, never from user input.
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-    />
-  );
+  return <JsonLd schema={schema} />;
 }

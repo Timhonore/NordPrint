@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseSearchTerm, toTsQuery } from "../search/provider";
+import { parseSearchTerm, toLikePatterns, toTsQuery } from "../search/provider";
 
 describe("parseSearchTerm", () => {
   it("understands 'sort pla' as colour + material", () => {
@@ -49,6 +49,36 @@ describe("parseSearchTerm", () => {
   it("survives punctuation and empty input", () => {
     expect(parseSearchTerm("   ").tokens).toEqual([]);
     expect(() => parseSearchTerm("!!!")).not.toThrow();
+  });
+});
+
+describe("token classification", () => {
+  it("separates structured hints from free text", () => {
+    // "sort pla" is colour + material. Neither word should also be demanded
+    // as literal text — no column contains both.
+    const parsed = parseSearchTerm("sort pla");
+    expect(parsed.consumed.sort()).toEqual(["pla", "sort"]);
+    expect(parsed.free).toEqual([]);
+  });
+
+  it("keeps unclassified words as free text", () => {
+    const parsed = parseSearchTerm("bambu pla");
+    expect(parsed.consumed).toEqual(["pla"]);
+    expect(parsed.free).toEqual(["bambu"]);
+  });
+
+  it("keeps printer hints as both a hint and free text", () => {
+    // "x1c" is a printer, but it also appears in titles like "Hotend til X1C".
+    const parsed = parseSearchTerm("x1c nozzle");
+    expect(parsed.printerHints).toEqual(["x1c"]);
+    expect(parsed.free).toContain("x1c");
+    expect(parsed.free).toContain("nozzle");
+  });
+
+  it("builds patterns from free tokens only when asked", () => {
+    const parsed = parseSearchTerm("sort pla");
+    expect(toLikePatterns(parsed, true)).toEqual([]);
+    expect(toLikePatterns(parsed)).not.toEqual([]);
   });
 });
 

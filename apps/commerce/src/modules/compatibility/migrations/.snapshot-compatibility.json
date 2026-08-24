@@ -1,7 +1,5 @@
 {
-  "namespaces": [
-    "public"
-  ],
+  "namespaces": ["public"],
   "name": "public",
   "tables": [
     {
@@ -35,10 +33,7 @@
           "scale": null,
           "default": "'product'",
           "comment": null,
-          "enumItems": [
-            "product",
-            "variant"
-          ],
+          "enumItems": ["product", "variant"],
           "mappedType": "enum"
         },
         "subject_id": {
@@ -70,11 +65,7 @@
           "scale": null,
           "default": null,
           "comment": null,
-          "enumItems": [
-            "printer_model",
-            "printer_family",
-            "printer_brand"
-          ],
+          "enumItems": ["printer_model", "printer_family", "printer_brand"],
           "mappedType": "enum"
         },
         "target_id": {
@@ -106,12 +97,7 @@
           "scale": null,
           "default": null,
           "comment": null,
-          "enumItems": [
-            "compatible",
-            "incompatible",
-            "conditional",
-            "unknown"
-          ],
+          "enumItems": ["compatible", "incompatible", "conditional", "unknown"],
           "mappedType": "enum"
         },
         "note": {
@@ -220,9 +206,7 @@
         },
         {
           "keyName": "compatibility_rule_pkey",
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "primary": true,

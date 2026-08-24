@@ -19,7 +19,13 @@ if (isProduction && !hasRedis) {
   );
 }
 
-const requiredInProduction = ["DATABASE_URL", "JWT_SECRET", "COOKIE_SECRET", "STORE_CORS", "ADMIN_CORS"];
+const requiredInProduction = [
+  "DATABASE_URL",
+  "JWT_SECRET",
+  "COOKIE_SECRET",
+  "STORE_CORS",
+  "ADMIN_CORS",
+];
 const missing = requiredInProduction.filter((key) => !process.env[key]);
 if (isProduction && missing.length > 0) {
   throw new Error(`Manglende obligatoriske miljøvariabler i produktion: ${missing.join(", ")}`);
@@ -67,7 +73,10 @@ const fileModule = process.env.S3_BUCKET
           {
             resolve: "@medusajs/medusa/file-local",
             id: "local",
-            options: { upload_dir: "static", backend_url: `${process.env.MEDUSA_BACKEND_URL ?? "http://localhost:9000"}/static` },
+            options: {
+              upload_dir: "static",
+              backend_url: `${process.env.MEDUSA_BACKEND_URL ?? "http://localhost:9000"}/static`,
+            },
           },
         ],
       },
@@ -88,7 +97,19 @@ const redisModules = hasRedis
         resolve: "@medusajs/medusa/workflow-engine-redis",
         options: { redis: { url: redisUrl } },
       },
-      { resolve: "@medusajs/medusa/locking", options: { providers: [{ resolve: "@medusajs/medusa/locking-redis", id: "locking-redis", is_default: true, options: { redisUrl } }] } },
+      {
+        resolve: "@medusajs/medusa/locking",
+        options: {
+          providers: [
+            {
+              resolve: "@medusajs/medusa/locking-redis",
+              id: "locking-redis",
+              is_default: true,
+              options: { redisUrl },
+            },
+          ],
+        },
+      },
     ]
   : [];
 
@@ -106,7 +127,9 @@ module.exports = defineConfig({
     http: {
       storeCors: process.env.STORE_CORS ?? "http://localhost:8000",
       adminCors: process.env.ADMIN_CORS ?? "http://localhost:9000,http://localhost:5173",
-      authCors: process.env.AUTH_CORS ?? "http://localhost:8000,http://localhost:9000,http://localhost:5173",
+      authCors:
+        process.env.AUTH_CORS ??
+        "http://localhost:8000,http://localhost:9000,http://localhost:5173",
       // Session cookies are httpOnly and are marked Secure automatically when
       // NODE_ENV is production; Caddy terminates TLS in front of the app, so
       // the app must always be reached over HTTPS in production.

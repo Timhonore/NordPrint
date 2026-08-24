@@ -177,7 +177,11 @@ function buildRows(products: readonly ProductDetail[]): Row[] {
     const cells = map(project);
     // A row where nobody has a value tells the customer nothing.
     if (cells.every((cell) => cell.key === null)) return;
-    rows.push({ label, values: cells.map((cell) => cell.node), keys: cells.map((cell) => cell.key) });
+    rows.push({
+      label,
+      values: cells.map((cell) => cell.node),
+      keys: cells.map((cell) => cell.key),
+    });
   };
 
   push("Pris", (product) => ({
@@ -238,7 +242,10 @@ function buildRows(products: readonly ProductDetail[]): Row[] {
 
   push("Maks. flow", (product) => {
     const flow = product.filament?.maxVolumetricSpeed ?? null;
-    return { node: flow === null ? "—" : `${flow} mm³/s`, key: flow === null ? null : String(flow) };
+    return {
+      node: flow === null ? "—" : `${flow} mm³/s`,
+      key: flow === null ? null : String(flow),
+    };
   });
 
   const ratings = [
@@ -280,7 +287,10 @@ function buildRows(products: readonly ProductDetail[]): Row[] {
   return rows;
 }
 
-function temperature(min: number | null | undefined, max: number | null | undefined): string | null {
+function temperature(
+  min: number | null | undefined,
+  max: number | null | undefined
+): string | null {
   if (min === null || min === undefined) return max ? `${max} °C` : null;
   if (max === null || max === undefined) return `${min} °C`;
   return min === max ? `${min} °C` : `${min}–${max} °C`;

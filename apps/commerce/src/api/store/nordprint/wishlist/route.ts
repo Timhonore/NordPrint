@@ -14,10 +14,7 @@ import { loadProductDetail } from "../../../../lib/catalog/product-detail";
  * The customer id always comes from the authenticated session — never from
  * the request body. Client-side authorisation is not authorisation.
  */
-export async function GET(
-  req: AuthenticatedMedusaRequest,
-  res: MedusaResponse
-): Promise<void> {
+export async function GET(req: AuthenticatedMedusaRequest, res: MedusaResponse): Promise<void> {
   const customerId = req.auth_context?.actor_id;
   if (!customerId) {
     res.status(401).json({ message: "Log ind for at se dine favoritter" });
@@ -59,10 +56,7 @@ export async function GET(
   });
 }
 
-export async function POST(
-  req: AuthenticatedMedusaRequest,
-  res: MedusaResponse
-): Promise<void> {
+export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse): Promise<void> {
   const customerId = req.auth_context?.actor_id;
   if (!customerId) {
     res.status(401).json({ message: "Log ind for at gemme favoritter" });
@@ -81,10 +75,7 @@ export async function POST(
   res.status(added ? 201 : 200).json({ added });
 }
 
-export async function DELETE(
-  req: AuthenticatedMedusaRequest,
-  res: MedusaResponse
-): Promise<void> {
+export async function DELETE(req: AuthenticatedMedusaRequest, res: MedusaResponse): Promise<void> {
   const customerId = req.auth_context?.actor_id;
   if (!customerId) {
     res.status(401).json({ message: "Log ind for at ændre dine favoritter" });

@@ -37,7 +37,9 @@ class GuideModuleService extends MedusaService({ Guide }) {
 }
 
 function asStringArray(value: unknown): string[] {
-  return Array.isArray(value) ? value.filter((entry): entry is string => typeof entry === "string") : [];
+  return Array.isArray(value)
+    ? value.filter((entry): entry is string => typeof entry === "string")
+    : [];
 }
 
 function readingMinutes(content: string): number {

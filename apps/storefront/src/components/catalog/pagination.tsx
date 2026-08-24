@@ -32,7 +32,10 @@ export function Pagination({
   };
 
   return (
-    <nav aria-label="Sidenavigation" className={cn("flex items-center justify-center gap-1", className)}>
+    <nav
+      aria-label="Sidenavigation"
+      className={cn("flex items-center justify-center gap-1", className)}
+    >
       {page > 1 ? (
         <Link
           href={href(page - 1)}
@@ -86,7 +89,9 @@ function pageNumbers(page: number, pageCount: number): (number | "gap")[] {
   if (pageCount <= 7) return Array.from({ length: pageCount }, (_, index) => index + 1);
 
   const window = new Set<number>([1, pageCount, page, page - 1, page + 1]);
-  const pages = [...window].filter((entry) => entry >= 1 && entry <= pageCount).sort((a, b) => a - b);
+  const pages = [...window]
+    .filter((entry) => entry >= 1 && entry <= pageCount)
+    .sort((a, b) => a - b);
 
   const result: (number | "gap")[] = [];
   let previous = 0;

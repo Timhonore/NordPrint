@@ -1,4 +1,8 @@
-import type { AuthenticatedMedusaRequest, MedusaRequest, MedusaResponse } from "@medusajs/framework/http";
+import type {
+  AuthenticatedMedusaRequest,
+  MedusaRequest,
+  MedusaResponse,
+} from "@medusajs/framework/http";
 import { ContainerRegistrationKeys } from "@medusajs/framework/utils";
 import { REVIEW_MODULE } from "../../../../../modules/review";
 import type ReviewModuleService from "../../../../../modules/review/service";
@@ -41,10 +45,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse): Promise<void
  * "Verificeret køb" is derived here from a real, completed order belonging to
  * the authenticated customer; it can never be set by the client.
  */
-export async function POST(
-  req: AuthenticatedMedusaRequest,
-  res: MedusaResponse
-): Promise<void> {
+export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse): Promise<void> {
   const customerId = req.auth_context?.actor_id;
   if (!customerId) {
     res.status(401).json({ message: "Log ind for at skrive en anmeldelse" });
@@ -94,7 +95,9 @@ export async function POST(
       body: body.body,
     });
   } catch (error) {
-    res.status(400).json({ message: error instanceof Error ? error.message : "Ugyldig anmeldelse" });
+    res
+      .status(400)
+      .json({ message: error instanceof Error ? error.message : "Ugyldig anmeldelse" });
     return;
   }
 

@@ -159,10 +159,7 @@ function Swatch({
         <svg
           aria-hidden="true"
           viewBox="0 0 20 20"
-          className={cn(
-            "pointer-events-none absolute size-4",
-            light ? "text-ink" : "text-white"
-          )}
+          className={cn("pointer-events-none absolute size-4", light ? "text-ink" : "text-white")}
         >
           <path
             d="M5 10.5l3.2 3.2L15 7"

@@ -15,7 +15,4 @@ export const CustomerPrinter = model
     /** The one used for compatibility checks when several are saved. */
     is_primary: model.boolean().default(false),
   })
-  .indexes([
-    { on: ["customer_id", "printer_model_id"], unique: true },
-    { on: ["customer_id"] },
-  ]);
+  .indexes([{ on: ["customer_id", "printer_model_id"], unique: true }, { on: ["customer_id"] }]);

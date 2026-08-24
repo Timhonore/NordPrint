@@ -19,6 +19,35 @@ export interface ActionResult {
 
 const GENERIC_ERROR = "Noget gik galt. Prøv igen.";
 
+/**
+ * Turns a backend failure into something a customer can act on.
+ *
+ * Medusa's own messages are English and written for developers — "A valid
+ * publishable key is required to proceed with the request" tells a customer
+ * nothing and tells an attacker something. Only the cases we recognise get a
+ * specific text; everything else is logged for us and generic for them.
+ */
+function customerMessage(
+  context: string,
+  result: { status: number; message: string },
+  outOfStock: string
+): string {
+  if (/inventory|stock|quantity|not enough/i.test(result.message)) return outOfStock;
+  if (result.status === 504 || result.status === 503) return result.message;
+
+  // Structured, and without anything that identifies the customer.
+  console.error(
+    JSON.stringify({
+      level: "error",
+      event: "cart_action_failed",
+      context,
+      status: result.status,
+      message: result.message,
+    })
+  );
+  return GENERIC_ERROR;
+}
+
 export async function addToCart(input: {
   variantId: string;
   quantity?: number;
@@ -35,10 +64,7 @@ export async function addToCart(input: {
   if (!result.ok) {
     return {
       ok: false,
-      // Medusa's inventory error is unhelpfully phrased for a customer.
-      message: /inventory|stock|quantity/i.test(result.message)
-        ? "Der er desværre ikke nok på lager."
-        : (result.message ?? GENERIC_ERROR),
+      message: customerMessage("add_line", result, "Der er desværre ikke nok på lager."),
     };
   }
 
@@ -64,9 +90,7 @@ export async function updateCartLine(input: {
   if (!result.ok) {
     return {
       ok: false,
-      message: /inventory|stock|quantity/i.test(result.message)
-        ? "Vi har ikke flere på lager lige nu."
-        : (result.message ?? GENERIC_ERROR),
+      message: customerMessage("update_line", result, "Vi har ikke flere på lager lige nu."),
     };
   }
 
@@ -83,7 +107,9 @@ export async function removeCartLine(input: { lineId: string }): Promise<ActionR
     revalidate: 0,
   });
 
-  if (!result.ok) return { ok: false, message: result.message ?? GENERIC_ERROR };
+  if (!result.ok) {
+    return { ok: false, message: customerMessage("remove_line", result, GENERIC_ERROR) };
+  }
 
   revalidatePath("/kurv");
   return { ok: true };
@@ -120,7 +146,9 @@ export async function removePromotionCode(input: { code: string }): Promise<Acti
     { method: "DELETE", revalidate: 0 }
   );
 
-  if (!result.ok) return { ok: false, message: result.message ?? GENERIC_ERROR };
+  if (!result.ok) {
+    return { ok: false, message: customerMessage("remove_promotion", result, GENERIC_ERROR) };
+  }
 
   revalidatePath("/kurv");
   revalidatePath("/checkout");

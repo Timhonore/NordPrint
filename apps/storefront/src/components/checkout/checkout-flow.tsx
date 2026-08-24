@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import type { CartSummary, PickupPoint, ShippingOption } from "@nordprint/types";
 import { DELIVERY_KIND_LABELS } from "@nordprint/types";
 import { formatMoney } from "@nordprint/commerce";
-import { Badge, Button, TechLabel, cn } from "@nordprint/ui";
+import { Badge, Button, TechLabel, TextField, cn } from "@nordprint/ui";
 import {
   completeOrder,
   initiatePayment,
@@ -215,25 +215,58 @@ function ContactStep({
   return (
     <form onSubmit={onSubmit} className="space-y-4" noValidate>
       <p className="text-sm text-ink-soft">
-        Du behøver ikke en konto for at handle. Vi bruger kun oplysningerne til at sende
-        pakken og din ordrebekræftelse.
+        Du behøver ikke en konto for at handle. Vi bruger kun oplysningerne til at sende pakken og
+        din ordrebekræftelse.
       </p>
 
-      <Field name="email" label="E-mail" type="email" autoComplete="email" error={errors.email} required />
+      <TextField
+        name="email"
+        label="E-mail"
+        type="email"
+        autoComplete="email"
+        error={errors.email}
+        required
+      />
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field name="firstName" label="Fornavn" autoComplete="given-name" error={errors.firstName} required />
-        <Field name="lastName" label="Efternavn" autoComplete="family-name" error={errors.lastName} required />
+        <TextField
+          name="firstName"
+          label="Fornavn"
+          autoComplete="given-name"
+          error={errors.firstName}
+          required
+        />
+        <TextField
+          name="lastName"
+          label="Efternavn"
+          autoComplete="family-name"
+          error={errors.lastName}
+          required
+        />
       </div>
 
-      <Field name="phone" label="Telefon" type="tel" autoComplete="tel" error={errors.phone} hint="Fragtfirmaet sender dig en sms" required />
+      <TextField
+        name="phone"
+        label="Telefon"
+        type="tel"
+        autoComplete="tel"
+        error={errors.phone}
+        hint="Fragtfirmaet sender dig en sms"
+        required
+      />
 
-      <Field name="address1" label="Adresse" autoComplete="address-line1" error={errors.address1} required />
-      <Field name="address2" label="Adresse 2 (valgfri)" autoComplete="address-line2" />
-      <Field name="company" label="Firma (valgfri)" autoComplete="organization" />
+      <TextField
+        name="address1"
+        label="Adresse"
+        autoComplete="address-line1"
+        error={errors.address1}
+        required
+      />
+      <TextField name="address2" label="Adresse 2 (valgfri)" autoComplete="address-line2" />
+      <TextField name="company" label="Firma (valgfri)" autoComplete="organization" />
 
       <div className="grid gap-4 sm:grid-cols-[8rem_1fr]">
-        <Field
+        <TextField
           name="postalCode"
           label="Postnummer"
           autoComplete="postal-code"
@@ -241,7 +274,13 @@ function ContactStep({
           error={errors.postalCode}
           required
         />
-        <Field name="city" label="By" autoComplete="address-level2" error={errors.city} required />
+        <TextField
+          name="city"
+          label="By"
+          autoComplete="address-level2"
+          error={errors.city}
+          required
+        />
       </div>
 
       <div>
@@ -389,8 +428,7 @@ function DeliveryStep({
             </div>
           ) : points.length === 0 ? (
             <p className="text-sm text-ink-soft">
-              Vi fandt ingen pakkeshops på postnummer {postalCode}. Vælg hjemmelevering i
-              stedet.
+              Vi fandt ingen pakkeshops på postnummer {postalCode}. Vælg hjemmelevering i stedet.
             </p>
           ) : (
             <ul className="space-y-2">
@@ -476,8 +514,7 @@ function PaymentStep({
   if (methods.length === 0) {
     return (
       <div className="rounded-lg border border-negative/25 bg-negative/5 px-4 py-3 text-sm text-negative">
-        Der er ingen betalingsmetoder tilgængelige lige nu. Kontakt os, så hjælper vi dig
-        igennem.
+        Der er ingen betalingsmetoder tilgængelige lige nu. Kontakt os, så hjælper vi dig igennem.
       </div>
     );
   }
@@ -565,9 +602,7 @@ function StepNav({
         const isCurrent = entry.id === current;
         return (
           <li key={entry.id} className="flex items-center gap-1">
-            {index > 0 ? (
-              <span aria-hidden="true" className="h-px w-4 bg-line sm:w-8" />
-            ) : null}
+            {index > 0 ? <span aria-hidden="true" className="h-px w-4 bg-line sm:w-8" /> : null}
             <button
               type="button"
               // Only completed steps can be jumped back to; jumping forward
@@ -651,56 +686,6 @@ function StepPanel({
 
       {open ? <div className="border-t border-line p-4 sm:p-5">{children}</div> : null}
     </section>
-  );
-}
-
-function Field({
-  name,
-  label,
-  type = "text",
-  error,
-  hint,
-  ...props
-}: {
-  name: string;
-  label: string;
-  type?: string;
-  error?: string;
-  hint?: string;
-} & React.InputHTMLAttributes<HTMLInputElement>): React.JSX.Element {
-  const id = `felt-${name}`;
-  const describedBy = [error ? `${id}-fejl` : null, hint ? `${id}-hint` : null]
-    .filter(Boolean)
-    .join(" ");
-
-  return (
-    <div>
-      <label htmlFor={id} className="block text-sm font-medium text-ink">
-        {label}
-      </label>
-      <input
-        id={id}
-        name={name}
-        type={type}
-        aria-invalid={error ? true : undefined}
-        aria-describedby={describedBy || undefined}
-        className={cn(
-          "mt-1.5 h-11 w-full rounded-lg border bg-surface px-3 text-sm placeholder:text-ink-faint focus:outline-none focus:ring-2 focus:ring-accent/30",
-          error ? "border-negative" : "border-line focus:border-accent"
-        )}
-        {...props}
-      />
-      {hint && !error ? (
-        <p id={`${id}-hint`} className="mt-1 text-xs text-ink-faint">
-          {hint}
-        </p>
-      ) : null}
-      {error ? (
-        <p id={`${id}-fejl`} className="mt-1 text-xs text-negative">
-          {error}
-        </p>
-      ) : null}
-    </div>
   );
 }
 

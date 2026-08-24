@@ -51,10 +51,7 @@ export class RuleBasedRecommendationEngine implements RecommendationEngine {
     return { recommendations, engine: this.id, input };
   }
 
-  private scoreProduct(
-    product: ProductSummary,
-    input: RecommendationInput
-  ): Recommendation | null {
+  private scoreProduct(product: ProductSummary, input: RecommendationInput): Recommendation | null {
     if (product.kind !== "filament" || product.material === null) return null;
 
     const profile = materialProfile(product.material);
@@ -102,7 +99,11 @@ export class RuleBasedRecommendationEngine implements RecommendationEngine {
 
       if (priority === "high_speed" && product.finish === "high-speed") {
         score += rule.weight;
-        reasons.push({ code: "priority:high_speed", label: "High Speed-formel", weight: rule.weight });
+        reasons.push({
+          code: "priority:high_speed",
+          label: "High Speed-formel",
+          weight: rule.weight,
+        });
       }
 
       if (priority === "finish" && (product.finish === "matte" || product.finish === "silk")) {

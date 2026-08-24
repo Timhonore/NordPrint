@@ -65,13 +65,7 @@ export interface ProductVariantSummary {
 }
 
 export type ProductKind =
-  | "filament"
-  | "printer"
-  | "spare_part"
-  | "accessory"
-  | "tool"
-  | "resin"
-  | "other";
+  "filament" | "printer" | "spare_part" | "accessory" | "tool" | "resin" | "other";
 
 export interface ProductSummary {
   readonly id: string;

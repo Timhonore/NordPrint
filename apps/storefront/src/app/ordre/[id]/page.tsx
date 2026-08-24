@@ -59,10 +59,9 @@ export default async function OrderPage({
 }): Promise<React.JSX.Element> {
   const { id } = await params;
 
-  const result = await apiFetch<{ order: MedusaOrder }>(
-    `/store/orders/${encodeURIComponent(id)}`,
-    { revalidate: 0 }
-  );
+  const result = await apiFetch<{ order: MedusaOrder }>(`/store/orders/${encodeURIComponent(id)}`, {
+    revalidate: 0,
+  });
 
   if (!result.ok) notFound();
 
@@ -112,7 +111,9 @@ export default async function OrderPage({
                 ) : null}
                 <p className="mt-0.5 text-sm text-ink-faint">{item.quantity} stk.</p>
               </div>
-              <p className="shrink-0 font-medium tabular-nums">{formatMoney(toMoney(item.total))}</p>
+              <p className="shrink-0 font-medium tabular-nums">
+                {formatMoney(toMoney(item.total))}
+              </p>
             </li>
           ))}
         </ul>

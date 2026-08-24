@@ -24,8 +24,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse): Promise<void
   }
 
   const printerService = req.scope.resolve<PrinterModuleService>(PRINTER_MODULE);
-  const compatibilityService =
-    req.scope.resolve<CompatibilityModuleService>(COMPATIBILITY_MODULE);
+  const compatibilityService = req.scope.resolve<CompatibilityModuleService>(COMPATIBILITY_MODULE);
 
   const printer = await printerService.retrieveModelWithLineage(printerModelId);
   const verdicts = await compatibilityService.resolveForManySubjects(productIds, printer);

@@ -139,10 +139,7 @@ function resolveAttributeValue(value: any): string | number | boolean | null {
   return value.value_text ?? null;
 }
 
-function toValueColumns(
-  type: string,
-  value: string | number | boolean
-): Record<string, unknown> {
+function toValueColumns(type: string, value: string | number | boolean): Record<string, unknown> {
   const base = { value_number: null, value_text: null, value_boolean: null };
   switch (type) {
     case "number": {

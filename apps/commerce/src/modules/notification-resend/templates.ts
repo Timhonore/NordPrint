@@ -125,7 +125,8 @@ export function renderEmail(template: EmailTemplate, data: EmailData): RenderedE
         text: [
           `${greeting(data.customerName)} — tak for din ordre #${data.orderDisplayId ?? ""}.`,
           ...(data.lines ?? []).map(
-            (line) => `- ${line.title}${line.variantTitle ? ` (${line.variantTitle})` : ""} x${line.quantity}: ${line.total}`
+            (line) =>
+              `- ${line.title}${line.variantTitle ? ` (${line.variantTitle})` : ""} x${line.quantity}: ${line.total}`
           ),
           `I alt: ${data.total ?? ""}`,
           data.orderUrl ? `Se din ordre: ${data.orderUrl}` : "",

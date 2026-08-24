@@ -1,7 +1,5 @@
 {
-  "namespaces": [
-    "public"
-  ],
+  "namespaces": ["public"],
   "name": "public",
   "tables": [
     {
@@ -67,13 +65,7 @@
           "scale": null,
           "default": null,
           "comment": null,
-          "enumItems": [
-            "number",
-            "text",
-            "boolean",
-            "enum",
-            "url"
-          ],
+          "enumItems": ["number", "text", "boolean", "enum", "url"],
           "mappedType": "enum"
         },
         "unit": {
@@ -253,9 +245,7 @@
         },
         {
           "keyName": "filament_attribute_definition_pkey",
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "primary": true,
@@ -960,9 +950,7 @@
         },
         {
           "keyName": "filament_spec_pkey",
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "primary": true,
@@ -1179,9 +1167,7 @@
         },
         {
           "keyName": "filament_attribute_value_pkey",
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "primary": true,
@@ -1192,25 +1178,17 @@
       "foreignKeys": {
         "filament_attribute_value_filament_spec_id_foreign": {
           "constraintName": "filament_attribute_value_filament_spec_id_foreign",
-          "columnNames": [
-            "filament_spec_id"
-          ],
+          "columnNames": ["filament_spec_id"],
           "localTableName": "public.filament_attribute_value",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.filament_spec",
           "updateRule": "cascade"
         },
         "filament_attribute_value_definition_id_foreign": {
           "constraintName": "filament_attribute_value_definition_id_foreign",
-          "columnNames": [
-            "definition_id"
-          ],
+          "columnNames": ["definition_id"],
           "localTableName": "public.filament_attribute_value",
-          "referencedColumnNames": [
-            "id"
-          ],
+          "referencedColumnNames": ["id"],
           "referencedTableName": "public.filament_attribute_definition",
           "updateRule": "cascade"
         }
@@ -1486,9 +1464,7 @@
         },
         {
           "keyName": "filament_variant_spec_pkey",
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "primary": true,

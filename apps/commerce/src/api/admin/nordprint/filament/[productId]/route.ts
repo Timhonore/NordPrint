@@ -11,10 +11,7 @@ import type FilamentModuleService from "../../../../../modules/filament/service"
  * NordPrint ships its own widget (see src/admin/widgets) which talks to this
  * route.
  */
-export async function GET(
-  req: AuthenticatedMedusaRequest,
-  res: MedusaResponse
-): Promise<void> {
+export async function GET(req: AuthenticatedMedusaRequest, res: MedusaResponse): Promise<void> {
   const filamentService = req.scope.resolve<FilamentModuleService>(FILAMENT_MODULE);
 
   const [spec, definitions] = await Promise.all([
@@ -25,10 +22,7 @@ export async function GET(
   res.json({ spec, definitions });
 }
 
-export async function POST(
-  req: AuthenticatedMedusaRequest,
-  res: MedusaResponse
-): Promise<void> {
+export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse): Promise<void> {
   const productId = req.params.productId;
   const body = (req.body ?? {}) as Record<string, unknown> & {
     attributes?: { key: string; value: string | number | boolean | null }[];

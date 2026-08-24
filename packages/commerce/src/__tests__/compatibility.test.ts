@@ -22,8 +22,22 @@ const x1c: PrinterModelWithLineage = {
   imageUrl: null,
   rank: 1,
   displayName: "Bambu Lab X1 Carbon",
-  brand: { id: "pb_bambu", name: "Bambu Lab", handle: "bambu-lab", logoUrl: null, websiteUrl: null, rank: 1 },
-  family: { id: "pf_x1", brandId: "pb_bambu", name: "X1", handle: "x1", description: null, rank: 1 },
+  brand: {
+    id: "pb_bambu",
+    name: "Bambu Lab",
+    handle: "bambu-lab",
+    logoUrl: null,
+    websiteUrl: null,
+    rank: 1,
+  },
+  family: {
+    id: "pf_x1",
+    brandId: "pb_bambu",
+    name: "X1",
+    handle: "x1",
+    description: null,
+    rank: 1,
+  },
 };
 
 const a1: PrinterModelWithLineage = {
@@ -39,7 +53,14 @@ const a1: PrinterModelWithLineage = {
   supportsAmsLite: true,
   hardenedNozzleStock: false,
   displayName: "Bambu Lab A1",
-  family: { id: "pf_a1", brandId: "pb_bambu", name: "A1", handle: "a1", description: null, rank: 2 },
+  family: {
+    id: "pf_a1",
+    brandId: "pb_bambu",
+    name: "A1",
+    handle: "a1",
+    description: null,
+    rank: 2,
+  },
 };
 
 function rule(partial: Partial<CompatibilityRule>): CompatibilityRule {
@@ -81,8 +102,18 @@ describe("resolveCompatibility", () => {
 
   it("lets the most specific rule win", () => {
     const rules = [
-      rule({ id: "cr_brand", targetType: "printer_brand", targetId: "pb_bambu", status: "compatible" }),
-      rule({ id: "cr_model", targetType: "printer_model", targetId: "pm_x1c", status: "incompatible" }),
+      rule({
+        id: "cr_brand",
+        targetType: "printer_brand",
+        targetId: "pb_bambu",
+        status: "compatible",
+      }),
+      rule({
+        id: "cr_model",
+        targetType: "printer_model",
+        targetId: "pm_x1c",
+        status: "incompatible",
+      }),
     ];
     const verdict = resolveCompatibility(rules, x1c, ["prod_nozzle"]);
     expect(verdict.status).toBe("incompatible");

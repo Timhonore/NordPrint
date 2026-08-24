@@ -3,8 +3,7 @@
  * failures are values, not thrown exceptions crossing module boundaries.
  */
 export type Result<T, E = ProviderError> =
-  | { readonly ok: true; readonly value: T }
-  | { readonly ok: false; readonly error: E };
+  { readonly ok: true; readonly value: T } | { readonly ok: false; readonly error: E };
 
 export interface ProviderError {
   readonly code: string;

@@ -40,7 +40,9 @@ class PrinterModuleService extends MedusaService({
    * The customer's printers, primary first. Used by the account dashboard and
    * by every compatibility badge in the storefront.
    */
-  async listCustomerPrintersWithLineage(customerId: string): Promise<
+  async listCustomerPrintersWithLineage(
+    customerId: string
+  ): Promise<
     { id: string; nickname: string | null; isPrimary: boolean; model: PrinterModelWithLineage }[]
   > {
     const saved = await this.listCustomerPrinters(

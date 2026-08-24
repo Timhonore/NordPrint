@@ -1,9 +1,4 @@
-import type {
-  FilamentMaterial,
-  PrintIntent,
-  Priority,
-  Rating1To5,
-} from "@nordprint/types";
+import type { FilamentMaterial, PrintIntent, Priority, Rating1To5 } from "@nordprint/types";
 
 /**
  * The knowledge base behind "Find filament".

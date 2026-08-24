@@ -21,3 +21,4 @@ export {
 } from "./primitives";
 export { ColorSwatchPicker, ColorSwatchRow, type ColorSwatchPickerProps } from "./color-swatch";
 export { Price, StockIndicator, type PriceProps } from "./price";
+export { TextField } from "./text-field";

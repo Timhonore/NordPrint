@@ -65,11 +65,7 @@ function clientIp(req: MedusaRequest): string {
 }
 
 /** Headers that cost nothing and close off whole classes of attack. */
-function securityHeaders(
-  _req: MedusaRequest,
-  res: MedusaResponse,
-  next: MedusaNextFunction
-): void {
+function securityHeaders(_req: MedusaRequest, res: MedusaResponse, next: MedusaNextFunction): void {
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
   res.setHeader("X-Frame-Options", "DENY");

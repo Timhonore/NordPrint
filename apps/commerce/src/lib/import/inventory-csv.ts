@@ -186,11 +186,7 @@ export function parseInventoryCsv(input: string): ParseResult {
       errors.push({ line, sku, message: `Lager: ${stock.error}` });
       continue;
     }
-    if (
-      stock.value !== null &&
-      stock.value < 0 &&
-      !commerceConfig.stock.allowBackorder
-    ) {
+    if (stock.value !== null && stock.value < 0 && !commerceConfig.stock.allowBackorder) {
       errors.push({
         line,
         sku,
@@ -315,7 +311,10 @@ function parseIntegerCell(raw: string): { value: number | null; error?: string }
 /** Accepts "189", "189,50" and "189.50"; returns minor units. */
 function parsePriceCell(raw: string): { value: number | null; error?: string } {
   if (raw === "") return { value: null };
-  const normalized = raw.replace(/\s/g, "").replace(/\.(?=\d{3}\b)/g, "").replace(",", ".");
+  const normalized = raw
+    .replace(/\s/g, "")
+    .replace(/\.(?=\d{3}\b)/g, "")
+    .replace(",", ".");
   const parsed = Number(normalized);
   if (!Number.isFinite(parsed)) return { value: null, error: `"${raw}" er ikke et beløb` };
   if (parsed < 0) return { value: null, error: "Beløbet kan ikke være negativt" };

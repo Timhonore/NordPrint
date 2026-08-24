@@ -1,7 +1,5 @@
 {
-  "namespaces": [
-    "public"
-  ],
+  "namespaces": ["public"],
   "name": "public",
   "tables": [
     {
@@ -195,11 +193,7 @@
           "scale": null,
           "default": "'pending'",
           "comment": null,
-          "enumItems": [
-            "pending",
-            "approved",
-            "rejected"
-          ],
+          "enumItems": ["pending", "approved", "rejected"],
           "mappedType": "enum"
         },
         "moderation_note": {
@@ -340,9 +334,7 @@
         },
         {
           "keyName": "product_review_pkey",
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "constraint": true,
           "primary": true,

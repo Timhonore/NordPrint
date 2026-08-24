@@ -90,10 +90,7 @@ function Hero(): React.JSX.Element {
   return (
     <section className="relative overflow-hidden border-b border-line bg-surface-inverse text-ink-inverse">
       <div className="grid-plate-inverse absolute inset-0" aria-hidden="true" />
-      <div
-        className="layer-lines absolute inset-0 opacity-70"
-        aria-hidden="true"
-      />
+      <div className="layer-lines absolute inset-0 opacity-70" aria-hidden="true" />
 
       {/* A soft aurora behind the headline: the only glow in the design, and it
           sits behind text rather than under a button. */}
@@ -184,7 +181,10 @@ function Section({
 }
 
 async function PopularFilaments(): Promise<React.JSX.Element | null> {
-  const result = await fetchCatalog({ sort: "popular", limit: 8, material: [] }, { kind: "filament" });
+  const result = await fetchCatalog(
+    { sort: "popular", limit: 8, material: [] },
+    { kind: "filament" }
+  );
   if (!result.ok || result.data.items.length === 0) return null;
 
   return (

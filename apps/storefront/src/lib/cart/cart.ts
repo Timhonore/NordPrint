@@ -2,11 +2,7 @@ import "server-only";
 
 import { cookies } from "next/headers";
 import type { CartLine, CartSummary, Money } from "@nordprint/types";
-import {
-  calculateFreeShippingProgress,
-  money,
-  resolveStockStatus,
-} from "@nordprint/commerce";
+import { calculateFreeShippingProgress, money, resolveStockStatus } from "@nordprint/commerce";
 import { commerceConfig } from "@nordprint/config";
 import { apiFetch, type ApiResult } from "../api/client";
 

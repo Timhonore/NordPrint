@@ -93,7 +93,10 @@ export function FacetPanel({
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-sm font-semibold text-ink">Filtre</h2>
             {activeCount > 0 ? (
-              <Link href={basePath} className="text-xs text-ink-faint hover:text-negative hover:underline">
+              <Link
+                href={basePath}
+                className="text-xs text-ink-faint hover:text-negative hover:underline"
+              >
                 Ryd alle
               </Link>
             ) : null}
@@ -389,12 +392,7 @@ function selectedValues(query: ProductQuery, key: string): string[] {
 }
 
 /** URL with one facet value toggled and pagination reset. */
-function facetHref(
-  basePath: string,
-  query: ProductQuery,
-  key: string,
-  value: string
-): string {
+function facetHref(basePath: string, query: ProductQuery, key: string, value: string): string {
   let next: ProductQuery;
 
   if (key === "diameter" || key === "vaegt") {

@@ -9,10 +9,7 @@ import type CompatibilityModuleService from "../../../../modules/compatibility/s
  * A "conditional" rule without a note is rejected — a condition nobody can
  * read is not a condition, it is a guess.
  */
-export async function GET(
-  req: AuthenticatedMedusaRequest,
-  res: MedusaResponse
-): Promise<void> {
+export async function GET(req: AuthenticatedMedusaRequest, res: MedusaResponse): Promise<void> {
   const subjectIds = String(req.query.subjectId ?? "")
     .split(",")
     .map((id) => id.trim())
@@ -27,10 +24,7 @@ export async function GET(
   res.json({ rules: await service.listCompatiblePrinterTargets(subjectIds) });
 }
 
-export async function POST(
-  req: AuthenticatedMedusaRequest,
-  res: MedusaResponse
-): Promise<void> {
+export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse): Promise<void> {
   const body = (req.body ?? {}) as {
     subjectType?: "product" | "variant";
     subjectId?: string;
@@ -41,9 +35,7 @@ export async function POST(
   };
 
   if (!body.subjectId || !body.targetType || !body.targetId || !body.status) {
-    res
-      .status(400)
-      .json({ message: "subjectId, targetType, targetId og status er påkrævet" });
+    res.status(400).json({ message: "subjectId, targetType, targetId og status er påkrævet" });
     return;
   }
 
@@ -66,10 +58,7 @@ export async function POST(
   res.json({ ok: true });
 }
 
-export async function DELETE(
-  req: AuthenticatedMedusaRequest,
-  res: MedusaResponse
-): Promise<void> {
+export async function DELETE(req: AuthenticatedMedusaRequest, res: MedusaResponse): Promise<void> {
   const id = typeof req.query.id === "string" ? req.query.id : null;
   if (!id) {
     res.status(400).json({ message: "id mangler" });

@@ -77,7 +77,11 @@ describe("serializeProductQuery", () => {
   });
 
   it("never emits scope filters — a category page owns its scope", () => {
-    const query = parseProductQuery({ kind: "filament", kategori: "filament-pla", material: "pla" });
+    const query = parseProductQuery({
+      kind: "filament",
+      kategori: "filament-pla",
+      material: "pla",
+    });
     const search = serializeProductQuery(query);
     expect(search).toBe("material=pla");
   });

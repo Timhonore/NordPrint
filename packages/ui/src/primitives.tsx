@@ -25,8 +25,7 @@ const badgeVariants = cva(
 );
 
 export interface BadgeProps
-  extends React.HTMLAttributes<HTMLSpanElement>,
-    VariantProps<typeof badgeVariants> {}
+  extends React.HTMLAttributes<HTMLSpanElement>, VariantProps<typeof badgeVariants> {}
 
 export function Badge({ className, tone, ...props }: BadgeProps): React.JSX.Element {
   return <span className={cn(badgeVariants({ tone }), className)} {...props} />;
@@ -60,12 +59,7 @@ export function Card({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>): React.JSX.Element {
-  return (
-    <div
-      className={cn("rounded-xl border border-line bg-surface", className)}
-      {...props}
-    />
-  );
+  return <div className={cn("rounded-xl border border-line bg-surface", className)} {...props} />;
 }
 
 export function CardBody({
@@ -134,10 +128,7 @@ export function RatingDots({
         {Array.from({ length: max }, (_, index) => (
           <span
             key={index}
-            className={cn(
-              "size-2 rounded-full",
-              index < clamped ? "bg-accent" : "bg-line"
-            )}
+            className={cn("size-2 rounded-full", index < clamped ? "bg-accent" : "bg-line")}
           />
         ))}
       </span>
@@ -230,9 +221,7 @@ export function EmptyState({
     <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-line px-6 py-14 text-center">
       {icon ? <div className="mb-4 text-ink-faint">{icon}</div> : null}
       <p className="text-base font-semibold text-ink">{title}</p>
-      {description ? (
-        <p className="mt-1.5 max-w-md text-sm text-ink-soft">{description}</p>
-      ) : null}
+      {description ? <p className="mt-1.5 max-w-md text-sm text-ink-soft">{description}</p> : null}
       {action ? <div className="mt-6">{action}</div> : null}
     </div>
   );

@@ -49,15 +49,13 @@ export default async function ComparePage({
           Sammenlign filament
         </h1>
         <p className="mb-8 max-w-2xl text-ink-soft">
-          Op til {commerceConfig.maxCompareItems} produkter ad gangen. Værdier, der er ens på
-          tværs, tones ned — så er det forskellene, der springer i øjnene.
+          Op til {commerceConfig.maxCompareItems} produkter ad gangen. Værdier, der er ens på tværs,
+          tones ned — så er det forskellene, der springer i øjnene.
         </p>
 
         <ComparePicker handles={handles} />
 
-        {products.length > 0 ? (
-          <ComparisonTable products={products} className="mt-8" />
-        ) : null}
+        {products.length > 0 ? <ComparisonTable products={products} className="mt-8" /> : null}
       </div>
     </>
   );

@@ -1,16 +1,10 @@
 "use client";
 
 import * as React from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { ProductDetail, ProductVariantSummary } from "@nordprint/types";
 import { isPurchasable } from "@nordprint/commerce";
-import {
-  Button,
-  ColorSwatchPicker,
-  Price,
-  StockIndicator,
-  VisuallyHidden,
-} from "@nordprint/ui";
+import { Button, ColorSwatchPicker, Price, StockIndicator, VisuallyHidden } from "@nordprint/ui";
 import { addToCart } from "@/lib/cart/actions";
 import { QuantityStepper } from "@/components/cart/quantity-stepper";
 import { WishlistButton } from "./wishlist-button";
@@ -36,6 +30,7 @@ export function ProductPurchasePanel({
   readonly onVariantChange?: (variantId: string) => void;
 }): React.JSX.Element {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
 
   const variants = product.variants;
@@ -45,9 +40,13 @@ export function ProductPurchasePanel({
   // that can actually be bought.
   const selected = React.useMemo<ProductVariantSummary | undefined>(() => {
     const fromUrl = colorParam
-      ? variants.find((variant) => slug(variant.filament?.colorName ?? variant.title) === colorParam)
+      ? variants.find(
+          (variant) => slug(variant.filament?.colorName ?? variant.title) === colorParam
+        )
       : undefined;
-    return fromUrl ?? variants.find((variant) => isPurchasable(variant.stock.status)) ?? variants[0];
+    return (
+      fromUrl ?? variants.find((variant) => isPurchasable(variant.stock.status)) ?? variants[0]
+    );
   }, [colorParam, variants]);
 
   const [quantity, setQuantity] = React.useState(1);
@@ -72,9 +71,13 @@ export function ProductPurchasePanel({
     const params = new URLSearchParams(searchParams.toString());
     params.set("farve", slug(variant.filament?.colorName ?? variant.title));
 
+    // The full path, not a bare "?…": a relative query-only URL is not
+    // resolved reliably by the App Router, and the colour selection silently
+    // stops updating the address bar.
+    //
     // `scroll: false` keeps the customer looking at the swatches they just
     // clicked instead of jumping to the top of the page.
-    router.replace(`?${params.toString()}`, { scroll: false });
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
     setStatus("idle");
     setMessage(null);
   };

@@ -43,8 +43,7 @@ const buttonVariants = cva(
 );
 
 export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {}
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonVariants> {}
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function Button(
   { className, variant, size, full, type = "button", ...props },
@@ -69,19 +68,15 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function 
  * a new tab get shipped. If it navigates, it is an `<a>`.
  */
 export interface LinkButtonProps
-  extends React.AnchorHTMLAttributes<HTMLAnchorElement>,
-    VariantProps<typeof buttonVariants> {}
+  extends React.AnchorHTMLAttributes<HTMLAnchorElement>, VariantProps<typeof buttonVariants> {}
 
-export const LinkButton = React.forwardRef<HTMLAnchorElement, LinkButtonProps>(
-  function LinkButton({ className, variant, size, full, ...props }, ref) {
-    return (
-      <a
-        ref={ref}
-        className={cn(buttonVariants({ variant, size, full }), className)}
-        {...props}
-      />
-    );
-  }
-);
+export const LinkButton = React.forwardRef<HTMLAnchorElement, LinkButtonProps>(function LinkButton(
+  { className, variant, size, full, ...props },
+  ref
+) {
+  return (
+    <a ref={ref} className={cn(buttonVariants({ variant, size, full }), className)} {...props} />
+  );
+});
 
 export { buttonVariants };

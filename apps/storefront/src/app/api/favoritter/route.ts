@@ -22,8 +22,5 @@ export async function GET(request: Request): Promise<NextResponse> {
 
   const products = await fetchProductsByHandle(handles);
 
-  return NextResponse.json(
-    { products },
-    { headers: { "Cache-Control": "private, max-age=30" } }
-  );
+  return NextResponse.json({ products }, { headers: { "Cache-Control": "private, max-age=30" } });
 }

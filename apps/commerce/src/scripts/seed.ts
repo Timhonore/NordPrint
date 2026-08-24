@@ -1,9 +1,8 @@
+import { readFile, writeFile } from "node:fs/promises";
+import path from "node:path";
+
 import type { ExecArgs } from "@medusajs/framework/types";
-import {
-  ContainerRegistrationKeys,
-  Modules,
-  ProductStatus,
-} from "@medusajs/framework/utils";
+import { ContainerRegistrationKeys, Modules, ProductStatus } from "@medusajs/framework/utils";
 import {
   createApiKeysWorkflow,
   createInventoryLevelsWorkflow,
@@ -71,8 +70,7 @@ export default async function seedNordPrint({ container }: ExecArgs): Promise<vo
   const brandService = container.resolve<BrandModuleService>(BRAND_MODULE);
   const filamentService = container.resolve<FilamentModuleService>(FILAMENT_MODULE);
   const printerService = container.resolve<PrinterModuleService>(PRINTER_MODULE);
-  const compatibilityService =
-    container.resolve<CompatibilityModuleService>(COMPATIBILITY_MODULE);
+  const compatibilityService = container.resolve<CompatibilityModuleService>(COMPATIBILITY_MODULE);
   const procurementService = container.resolve<ProcurementModuleService>(PROCUREMENT_MODULE);
   const guideService = container.resolve<GuideModuleService>(GUIDE_MODULE);
 
@@ -84,12 +82,28 @@ export default async function seedNordPrint({ container }: ExecArgs): Promise<vo
   const [store] = await storeService.listStores();
   if (!store) throw new Error("Ingen butik fundet — kør migrationerne først");
 
-  let [salesChannel] = await salesChannelService.listSalesChannels({ name: "NordPrint" });
+  // Adopt whichever sales channel the store already points at. Medusa creates
+  // a "Default Sales Channel" during migration, and creating a second one
+  // beside it is how a shop ends up with the publishable key on one channel
+  // and the stock location on the other — carts then fail with
+  // "not associated with any stock location", which is a confusing way to
+  // learn you have two channels.
+  const existingChannels = await salesChannelService.listSalesChannels({});
+  let salesChannel =
+    existingChannels.find((channel) => channel.id === store.default_sales_channel_id) ??
+    existingChannels.find((channel) => channel.name === "NordPrint") ??
+    existingChannels[0];
+
   if (!salesChannel) {
     const { result } = await createSalesChannelsWorkflow(container).run({
       input: { salesChannelsData: [{ name: "NordPrint", description: "nordprint.dk" }] },
     });
     salesChannel = result[0]!;
+  } else if (salesChannel.name !== "NordPrint") {
+    await salesChannelService.updateSalesChannels(salesChannel.id, {
+      name: "NordPrint",
+      description: "nordprint.dk",
+    });
   }
 
   await updateStoresWorkflow(container).run({
@@ -170,9 +184,7 @@ export default async function seedNordPrint({ container }: ExecArgs): Promise<vo
     fulfillmentSet = await fulfillmentService.createFulfillmentSets({
       name: "NordPrint Danmark",
       type: "shipping",
-      service_zones: [
-        { name: "Danmark", geo_zones: [{ country_code: "dk", type: "country" }] },
-      ],
+      service_zones: [{ name: "Danmark", geo_zones: [{ country_code: "dk", type: "country" }] }],
     });
 
     await link.create({
@@ -240,6 +252,7 @@ export default async function seedNordPrint({ container }: ExecArgs): Promise<vo
   // ------------------------------------------------------- publishable key
   const apiKeyService = container.resolve(Modules.API_KEY);
   let [publishableKey] = await apiKeyService.listApiKeys({ type: "publishable" });
+
   if (!publishableKey) {
     const { result } = await createApiKeysWorkflow(container).run({
       input: {
@@ -247,10 +260,16 @@ export default async function seedNordPrint({ container }: ExecArgs): Promise<vo
       },
     });
     publishableKey = result[0]!;
-    await linkSalesChannelsToApiKeyWorkflow(container).run({
-      input: { id: publishableKey.id, add: [salesChannel.id] },
-    });
   }
+
+  // Linked unconditionally, not only for a freshly created key: a key that
+  // already existed is exactly the case where the link is missing, and a
+  // storefront with an unlinked key can browse but never add to a cart.
+  await runQuietly(logger, "nøgle ↔ salgskanal", () =>
+    linkSalesChannelsToApiKeyWorkflow(container).run({
+      input: { id: publishableKey!.id, add: [salesChannel!.id] },
+    })
+  );
 
   // ------------------------------------------------------------ categories
   logger.info("NordPrint: opretter kategorier …");
@@ -315,7 +334,7 @@ export default async function seedNordPrint({ container }: ExecArgs): Promise<vo
         weight: filament.grossWeightG,
         options: {
           Farve: color.name,
-          "Vægt": formatWeight(filament.netWeightG),
+          Vægt: formatWeight(filament.netWeightG),
         },
         prices: [{ currency_code: "dkk", amount: toMajor(filament.price) }],
       })),
@@ -387,9 +406,7 @@ export default async function seedNordPrint({ container }: ExecArgs): Promise<vo
     .whereIn("product_id", [...productIdByHandle.values()])
     .whereNull("deleted_at")
     .select("id", "sku", "product_id");
-  const variantIdBySku = new Map<string, string>(
-    variantRows.map((row: any) => [row.sku, row.id])
-  );
+  const variantIdBySku = new Map<string, string>(variantRows.map((row: any) => [row.sku, row.id]));
 
   // ------------------------------------------------------------- tilbud
   // Discounts are modelled as a real Medusa sale price list, not by
@@ -673,6 +690,54 @@ export default async function seedNordPrint({ container }: ExecArgs): Promise<vo
     } as never);
   }
 
+  // ---------------------------------------------------------------- verify
+  //
+  // The links above are created through workflows that fail softly when the
+  // link already exists. That is convenient for re-runs and dangerous for a
+  // first run: a swallowed failure leaves a shop that browses fine and cannot
+  // sell. So the seed checks its own work and refuses to report success on a
+  // configuration that would break at the first "læg i kurv".
+  logger.info("NordPrint: kontrollerer opsætningen …");
+
+  const problems: string[] = [];
+
+  const [keyLink] = await knex("publishable_api_key_sales_channel")
+    .where({ publishable_key_id: publishableKey.id, sales_channel_id: salesChannel.id })
+    .whereNull("deleted_at")
+    .select("id");
+  if (!keyLink) {
+    problems.push(
+      "Den publishable API-nøgle er ikke knyttet til salgskanalen — storefront kan ikke lægge i kurv."
+    );
+  }
+
+  const [locationLink] = await knex("sales_channel_stock_location")
+    .where({ sales_channel_id: salesChannel.id, stock_location_id: stockLocation.id })
+    .whereNull("deleted_at")
+    .select("id");
+  if (!locationLink) {
+    problems.push("Salgskanalen er ikke knyttet til lageret — varer kan ikke reserveres ved køb.");
+  }
+
+  const [{ count: levelCount }] = await knex("inventory_level")
+    .whereNull("deleted_at")
+    .count("* as count");
+  if (Number(levelCount) === 0) {
+    problems.push("Der er ingen lagerniveauer — alt vil fremstå som udsolgt.");
+  }
+
+  if (problems.length > 0) {
+    for (const problem of problems) logger.error(`NordPrint: ${problem}`);
+    throw new Error(
+      `Seed'en fuldførte, men opsætningen er ikke brugbar (${problems.length} problemer, se ovenfor).`
+    );
+  }
+
+  // The publishable key is generated, not chosen, so the storefront cannot
+  // know it in advance. Writing it to a file means `pnpm dev` and CI pick it
+  // up without a human copying a 64-character token out of a log.
+  await writePublishableKeyFile(logger, publishableKey.token);
+
   logger.info("");
   logger.info("NordPrint: seed færdig.");
   logger.info(`  Publishable API key: ${publishableKey.token}`);
@@ -684,6 +749,44 @@ export default async function seedNordPrint({ container }: ExecArgs): Promise<vo
 }
 
 // ---------------------------------------------------------------- helpers
+
+/**
+ * Writes the generated publishable key where the storefront reads it.
+ *
+ * `.env.local` is gitignored and only the key line is rewritten, so a
+ * developer's own overrides in the same file survive a re-seed.
+ */
+async function writePublishableKeyFile(
+  logger: { info: (message: string) => void; warn: (message: string) => void },
+  token: string
+): Promise<void> {
+  const target = path.resolve(process.cwd(), "../storefront/.env.local");
+  const line = `MEDUSA_PUBLISHABLE_KEY=${token}`;
+
+  try {
+    let contents = "";
+    try {
+      contents = await readFile(target, "utf8");
+    } catch {
+      contents =
+        "NEXT_PUBLIC_SITE_URL=http://localhost:8000\n" +
+        "NEXT_PUBLIC_MEDUSA_BACKEND_URL=http://localhost:9000\n";
+    }
+
+    const next = /^MEDUSA_PUBLISHABLE_KEY=.*$/m.test(contents)
+      ? contents.replace(/^MEDUSA_PUBLISHABLE_KEY=.*$/m, line)
+      : `${contents.endsWith("\n") || contents === "" ? contents : `${contents}\n`}${line}\n`;
+
+    await writeFile(target, next, "utf8");
+    logger.info(`NordPrint: skrev publishable key til ${target}`);
+  } catch (error) {
+    // Not fatal — the key is printed below, and a read-only checkout is a
+    // legitimate way to run the seed.
+    logger.warn(
+      `NordPrint: kunne ikke skrive .env.local (${error instanceof Error ? error.message : "ukendt fejl"}). Kopiér nøglen manuelt.`
+    );
+  }
+}
 
 /** Medusa takes prices in the major unit; the seed data is in minor units. */
 const toMajor = (minor: number): number => minor / 100;
@@ -779,9 +882,7 @@ async function seedCategories(container: ExecArgs["container"]): Promise<Map<str
   return byHandle;
 }
 
-async function seedPrinters(
-  printerService: PrinterModuleService
-): Promise<Map<string, string>> {
+async function seedPrinters(printerService: PrinterModuleService): Promise<Map<string, string>> {
   const modelIdByHandle = new Map<string, string>();
 
   for (const brandSeed of SEED_PRINTER_BRANDS) {

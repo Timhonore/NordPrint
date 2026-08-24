@@ -9,8 +9,5 @@ import { fetchCart } from "@/lib/cart/cart";
  */
 export async function GET(): Promise<NextResponse> {
   const cart = await fetchCart();
-  return NextResponse.json(
-    { cart },
-    { headers: { "Cache-Control": "no-store, private" } }
-  );
+  return NextResponse.json({ cart }, { headers: { "Cache-Control": "no-store, private" } });
 }

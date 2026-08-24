@@ -82,11 +82,12 @@ export function ActiveFilterChips({
   if (query.priceMin !== undefined || query.priceMax !== undefined) {
     const from = query.priceMin !== undefined ? `${query.priceMin / 100} kr` : null;
     const to = query.priceMax !== undefined ? `${query.priceMax / 100} kr` : null;
-    push(
-      "pris",
-      from && to ? `${from}–${to}` : from ? `Over ${from}` : `Under ${to}`,
-      { ...query, priceMin: undefined, priceMax: undefined, page: 1 }
-    );
+    push("pris", from && to ? `${from}–${to}` : from ? `Over ${from}` : `Under ${to}`, {
+      ...query,
+      priceMin: undefined,
+      priceMax: undefined,
+      page: 1,
+    });
   }
 
   if (query.inStockOnly) {

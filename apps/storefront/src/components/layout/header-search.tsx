@@ -78,8 +78,7 @@ export function HeaderSearch(): React.JSX.Element {
 
   const products = active ? results.products : EMPTY.products;
   const hasResults =
-    products.length > 0 ||
-    (active && (results.categories.length > 0 || results.guides.length > 0));
+    products.length > 0 || (active && (results.categories.length > 0 || results.guides.length > 0));
 
   const submit = (): void => {
     if (term.trim().length === 0) return;

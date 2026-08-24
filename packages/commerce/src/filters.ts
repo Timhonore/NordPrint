@@ -77,7 +77,8 @@ export function parseProductQuery(
   const kind = Array.isArray(params.kind) ? params.kind[0] : params.kind;
   const categoryHandle = Array.isArray(params.categoryHandle)
     ? params.categoryHandle[0]
-    : (params.categoryHandle ?? (Array.isArray(params.kategori) ? params.kategori[0] : params.kategori));
+    : (params.categoryHandle ??
+      (Array.isArray(params.kategori) ? params.kategori[0] : params.kategori));
 
   const query: ProductQuery = {
     ...defaults,

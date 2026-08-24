@@ -21,7 +21,11 @@ export function WishlistView(): React.JSX.Element {
   const [status, setStatus] = React.useState<"idle" | "loading" | "error">("idle");
 
   const handles = React.useMemo(
-    () => wishlist.map((entry) => entry.handle).filter(Boolean).join(","),
+    () =>
+      wishlist
+        .map((entry) => entry.handle)
+        .filter(Boolean)
+        .join(","),
     [wishlist]
   );
 

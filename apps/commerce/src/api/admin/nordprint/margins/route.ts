@@ -14,10 +14,7 @@ import type ProcurementModuleService from "../../../../modules/procurement/servi
  * never reachable from `/store`, and no storefront DTO carries it. That
  * separation is the whole reason cost lives in its own module.
  */
-export async function GET(
-  req: AuthenticatedMedusaRequest,
-  res: MedusaResponse
-): Promise<void> {
+export async function GET(req: AuthenticatedMedusaRequest, res: MedusaResponse): Promise<void> {
   const knex = req.scope.resolve(ContainerRegistrationKeys.PG_CONNECTION);
   const procurement = req.scope.resolve<ProcurementModuleService>(PROCUREMENT_MODULE);
 
@@ -97,10 +94,7 @@ export async function GET(
 }
 
 /** PUT /admin/nordprint/margins — sets the cost price for one variant. */
-export async function POST(
-  req: AuthenticatedMedusaRequest,
-  res: MedusaResponse
-): Promise<void> {
+export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse): Promise<void> {
   const body = (req.body ?? {}) as {
     variantId?: string;
     costPrice?: number;

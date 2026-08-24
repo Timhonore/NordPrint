@@ -12,10 +12,7 @@ import { ORDER_TOTAL_MINOR } from "../../../../lib/sql/order-total";
  * placeholder metrics and no sample data: a dashboard that invents numbers is
  * worse than no dashboard, because people make purchasing decisions on it.
  */
-export async function GET(
-  req: AuthenticatedMedusaRequest,
-  res: MedusaResponse
-): Promise<void> {
+export async function GET(req: AuthenticatedMedusaRequest, res: MedusaResponse): Promise<void> {
   const knex = req.scope.resolve(ContainerRegistrationKeys.PG_CONNECTION);
   const currency = commerceConfig.currency.toLowerCase();
   const lowStockAt = commerceConfig.stock.lowStockAtOrBelow;
@@ -36,8 +33,7 @@ export async function GET(
       { currency }
     ),
 
-    knex.raw(
-      /* sql */ `
+    knex.raw(/* sql */ `
       SELECT
         oli.product_id,
         MAX(oli.product_title)      AS title,
@@ -51,8 +47,7 @@ export async function GET(
       GROUP BY oli.product_id
       ORDER BY units DESC
       LIMIT 8
-    `
-    ),
+    `),
 
     knex.raw(
       /* sql */ `
@@ -75,8 +70,7 @@ export async function GET(
       { lowStockAt }
     ),
 
-    knex.raw(
-      /* sql */ `
+    knex.raw(/* sql */ `
       SELECT
         o.id, o.display_id, o.email, o.created_at, o.status, o.currency_code,
         ${ORDER_TOTAL_MINOR} AS total
@@ -85,18 +79,15 @@ export async function GET(
       WHERE o.deleted_at IS NULL
       ORDER BY o.created_at DESC
       LIMIT 10
-    `
-    ),
+    `),
 
-    knex.raw(
-      /* sql */ `
+    knex.raw(/* sql */ `
       SELECT COUNT(*)::int AS count
       FROM "order" o
       WHERE o.deleted_at IS NULL
         AND o.status = 'pending'
         AND o.created_at <= NOW() - INTERVAL '24 hours'
-    `
-    ),
+    `),
   ]);
 
   const todayRow = today.rows?.[0] ?? { revenue: 0, order_count: 0 };

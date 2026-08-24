@@ -8,10 +8,7 @@ import type PrinterModuleService from "../../../../../modules/printer/service";
  * Guests keep their choice in local storage; a logged-in customer's printers
  * live here so the compatibility badge follows them across devices.
  */
-export async function GET(
-  req: AuthenticatedMedusaRequest,
-  res: MedusaResponse
-): Promise<void> {
+export async function GET(req: AuthenticatedMedusaRequest, res: MedusaResponse): Promise<void> {
   const customerId = req.auth_context?.actor_id;
   if (!customerId) {
     res.status(401).json({ message: "Log ind for at se dine printere" });
@@ -22,10 +19,7 @@ export async function GET(
   res.json({ printers: await printerService.listCustomerPrintersWithLineage(customerId) });
 }
 
-export async function POST(
-  req: AuthenticatedMedusaRequest,
-  res: MedusaResponse
-): Promise<void> {
+export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse): Promise<void> {
   const customerId = req.auth_context?.actor_id;
   if (!customerId) {
     res.status(401).json({ message: "Log ind for at gemme din printer" });
@@ -63,10 +57,7 @@ export async function POST(
   res.json({ printers: await printerService.listCustomerPrintersWithLineage(customerId) });
 }
 
-export async function DELETE(
-  req: AuthenticatedMedusaRequest,
-  res: MedusaResponse
-): Promise<void> {
+export async function DELETE(req: AuthenticatedMedusaRequest, res: MedusaResponse): Promise<void> {
   const customerId = req.auth_context?.actor_id;
   if (!customerId) {
     res.status(401).json({ message: "Log ind først" });

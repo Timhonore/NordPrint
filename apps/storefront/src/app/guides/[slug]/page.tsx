@@ -7,6 +7,7 @@ import { TechLabel } from "@nordprint/ui";
 import { fetchGuide, fetchGuides } from "@/lib/api/catalog";
 import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 import { Markdown } from "@/components/content/markdown";
+import { JsonLd } from "@/lib/seo/json-ld";
 
 export const revalidate = 300;
 
@@ -133,10 +134,7 @@ export default async function GuidePage({ params }: PageProps): Promise<React.JS
         ) : null}
       </article>
 
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-      />
+      <JsonLd schema={schema} />
     </>
   );
 }

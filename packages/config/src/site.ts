@@ -20,7 +20,10 @@ export interface SiteConfig {
 export function loadSiteConfig(): SiteConfig {
   return {
     url: readString("NEXT_PUBLIC_SITE_URL", "http://localhost:8000").replace(/\/$/, ""),
-    apiUrl: readString("NEXT_PUBLIC_MEDUSA_BACKEND_URL", "http://localhost:9000").replace(/\/$/, ""),
+    apiUrl: readString("NEXT_PUBLIC_MEDUSA_BACKEND_URL", "http://localhost:9000").replace(
+      /\/$/,
+      ""
+    ),
     adminUrl: readString("NEXT_PUBLIC_ADMIN_URL", "http://localhost:9000/app").replace(/\/$/, ""),
     supportEmail: readString("NORDPRINT_SUPPORT_EMAIL", "hej@nordprint.dk"),
     supportPhone: readString("NORDPRINT_SUPPORT_PHONE", "+45 00 00 00 00"),

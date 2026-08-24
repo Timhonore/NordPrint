@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
-import { siteConfig } from "@nordprint/config";
+import { filamentSections, shopSections, siteConfig } from "@nordprint/config";
+import { infoPages } from "@/lib/content/info-pages";
 import { EMPTY_SEARCH_RESULT, fetchCatalog, fetchGuides } from "@/lib/api/catalog";
 
 /**
@@ -17,13 +18,75 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const staticPages: MetadataRoute.Sitemap = [
     { url: `${siteConfig.url}/`, lastModified: now, changeFrequency: "daily", priority: 1 },
-    { url: `${siteConfig.url}/filament`, lastModified: now, changeFrequency: "daily", priority: 0.9 },
-    { url: `${siteConfig.url}/produkter`, lastModified: now, changeFrequency: "daily", priority: 0.8 },
+    {
+      url: `${siteConfig.url}/filament`,
+      lastModified: now,
+      changeFrequency: "daily",
+      priority: 0.9,
+    },
+    {
+      url: `${siteConfig.url}/produkter`,
+      lastModified: now,
+      changeFrequency: "daily",
+      priority: 0.8,
+    },
     { url: `${siteConfig.url}/tilbud`, lastModified: now, changeFrequency: "daily", priority: 0.7 },
-    { url: `${siteConfig.url}/find-filament`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
-    { url: `${siteConfig.url}/sammenlign`, lastModified: now, changeFrequency: "monthly", priority: 0.4 },
-    { url: `${siteConfig.url}/guides`, lastModified: now, changeFrequency: "weekly", priority: 0.6 },
-    { url: `${siteConfig.url}/shop-efter-printer`, lastModified: now, changeFrequency: "weekly", priority: 0.6 },
+    {
+      url: `${siteConfig.url}/find-filament`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
+    {
+      url: `${siteConfig.url}/sammenlign`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.4,
+    },
+    {
+      url: `${siteConfig.url}/guides`,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.6,
+    },
+    {
+      url: `${siteConfig.url}/shop-efter-printer`,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.6,
+    },
+
+    // Sections, subcategories and material pages come from the same registry
+    // the routes use, so a new department cannot be forgotten here.
+    ...shopSections.flatMap((section) => [
+      {
+        url: `${siteConfig.url}/${section.slug}`,
+        lastModified: now,
+        changeFrequency: "daily" as const,
+        priority: 0.8,
+      },
+      ...section.subsections.map((subsection) => ({
+        url: `${siteConfig.url}/${section.slug}/${subsection.slug}`,
+        lastModified: now,
+        changeFrequency: "weekly" as const,
+        priority: 0.7,
+      })),
+    ]),
+    ...filamentSections.map((section) => ({
+      url: `${siteConfig.url}/filament/${section.slug}`,
+      lastModified: now,
+      changeFrequency: "daily" as const,
+      priority: 0.85,
+    })),
+
+    // The information pages change rarely but must be findable — several of
+    // them are there because Danish consumers are entitled to find them.
+    ...infoPages.map((page) => ({
+      url: `${siteConfig.url}/${page.slug}`,
+      lastModified: now,
+      changeFrequency: "yearly" as const,
+      priority: 0.3,
+    })),
   ];
 
   // A sitemap is a nice-to-have; a failed fetch must not 500 the route.

@@ -20,8 +20,8 @@ export function FindFilamentTeaser(): React.JSX.Element {
               Find dit filament
             </h2>
             <p className="mt-3 max-w-md leading-relaxed text-white/70">
-              Fire spørgsmål om din printer, hvad du skal printe, og hvad der er vigtigst.
-              Så foreslår vi 3-6 ruller — og fortæller hvorfor.
+              Fire spørgsmål om din printer, hvad du skal printe, og hvad der er vigtigst. Så
+              foreslår vi 3-6 ruller — og fortæller hvorfor.
             </p>
             <LinkButton
               href="/find-filament"

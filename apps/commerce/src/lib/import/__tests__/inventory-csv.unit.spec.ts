@@ -173,13 +173,7 @@ describe("buildImportPreview", () => {
 
   it("never silently drops a row: every row lands in exactly one bucket", () => {
     const { rows, errors } = parseInventoryCsv(
-      [
-        "sku,stock",
-        "NP-PLA-BLK-1000,14",
-        "NP-PLA-WHT-1000,9",
-        "NP-MISSING,1",
-        ",5",
-      ].join("\n")
+      ["sku,stock", "NP-PLA-BLK-1000,14", "NP-PLA-WHT-1000,9", "NP-MISSING,1", ",5"].join("\n")
     );
     const preview = buildImportPreview(rows, errors, existing);
     expect(preview.toUpdate + preview.unchanged + preview.errors.length).toBe(4);

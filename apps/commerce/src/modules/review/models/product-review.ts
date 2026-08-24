@@ -32,8 +32,4 @@ export const ProductReview = model
     moderated_by: model.text().nullable(),
     moderated_at: model.dateTime().nullable(),
   })
-  .indexes([
-    { on: ["product_id", "status"] },
-    { on: ["customer_id"] },
-    { on: ["status"] },
-  ]);
+  .indexes([{ on: ["product_id", "status"] }, { on: ["customer_id"] }, { on: ["status"] }]);

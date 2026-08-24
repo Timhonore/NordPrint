@@ -135,8 +135,8 @@ export function CookieConsent(): React.JSX.Element | null {
         Cookies på NordPrint
       </h2>
       <p className="mt-1.5 text-sm leading-relaxed text-ink-soft">
-        Vi bruger nødvendige cookies, for at kurven og login virker. Statistik og
-        markedsføring bruger vi kun, hvis du siger ja.{" "}
+        Vi bruger nødvendige cookies, for at kurven og login virker. Statistik og markedsføring
+        bruger vi kun, hvis du siger ja.{" "}
         <Link href="/cookies" className="font-medium text-accent hover:underline">
           Læs mere
         </Link>

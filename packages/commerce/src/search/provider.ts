@@ -1,8 +1,4 @@
-import type {
-  ProductQuery,
-  ProductSearchResult,
-  SearchSuggestionResult,
-} from "@nordprint/types";
+import type { ProductQuery, ProductSearchResult, SearchSuggestionResult } from "@nordprint/types";
 
 /**
  * Search provider abstraction.
@@ -48,6 +44,14 @@ export interface ParsedSearchTerm {
   readonly flags: readonly string[];
   /** The token sequence plus synonym substitutions — see `expandSynonyms`. */
   readonly variants: readonly (readonly string[])[];
+  /**
+   * Tokens the parser turned into a structured filter. Callers filter these
+   * out before matching free text, so "sort pla" does not also demand the
+   * literal string "sort pla" in a column.
+   */
+  readonly consumed: readonly string[];
+  /** Tokens left over after classification — the actual free-text part. */
+  readonly free: readonly string[];
 }
 
 const MATERIAL_TOKENS: Record<string, string> = {
@@ -168,7 +172,7 @@ const SYNONYMS: Record<string, string[]> = {
   storage: ["opbevaring"],
   opbevaring: ["storage"],
   tool: ["værktøj", "vaerktoej"],
-  "værktøj": ["tool"],
+  værktøj: ["tool"],
   hotend: ["hot-end", "varmeblok"],
   brass: ["messing"],
   messing: ["brass"],
@@ -208,34 +212,50 @@ export function parseSearchTerm(raw: string): ParsedSearchTerm {
   const colors: string[] = [];
   const printerHints: string[] = [];
   const flags: string[] = [];
+  const consumed: string[] = [];
+  const free: string[] = [];
 
   for (const token of tokens) {
     const numeric = Number(token.replace(",", "."));
     if (Number.isFinite(numeric)) {
-      if (DIAMETERS.has(numeric)) diameters.push(numeric);
-      // Nozzle diameters are the small ones: 0.2 – 1.0 mm.
-      else if (numeric > 0 && numeric <= 1.2) nozzleSizes.push(numeric);
+      if (DIAMETERS.has(numeric)) {
+        diameters.push(numeric);
+        consumed.push(token);
+      } else if (numeric > 0 && numeric <= 1.2) {
+        // Nozzle diameters are the small ones: 0.2 – 1.0 mm.
+        nozzleSizes.push(numeric);
+        consumed.push(token);
+      } else {
+        free.push(token);
+      }
       continue;
     }
 
     const material = MATERIAL_TOKENS[token];
     if (material) {
       materials.push(material);
+      consumed.push(token);
       continue;
     }
 
     const color = COLOR_TOKENS[token];
     if (color) {
       colors.push(color);
+      consumed.push(token);
       continue;
     }
 
     if (PRINTER_TOKENS.has(token)) {
       printerHints.push(token);
+      // A printer hint is also worth matching as text: "x1c" appears in
+      // product titles like "Hotend til X1C".
+      free.push(token);
       continue;
     }
 
     if (FLAG_TOKENS.has(token)) flags.push(token);
+
+    free.push(token);
   }
 
   return {
@@ -249,13 +269,22 @@ export function parseSearchTerm(raw: string): ParsedSearchTerm {
     printerHints: [...new Set(printerHints)],
     flags: [...new Set(flags)],
     variants: expandSynonyms(tokens),
+    consumed: [...new Set(consumed)],
+    free: [...new Set(free)],
   };
 }
 
-/** SQL `LIKE` patterns covering every spelling of the query. */
-export function toLikePatterns(term: ParsedSearchTerm): string[] {
-  if (term.tokens.length === 0) return [];
-  return [...new Set(term.variants.map((variant) => `%${variant.join("%")}%`))];
+/**
+ * SQL `LIKE` patterns covering every spelling of the query.
+ *
+ * Pass `onlyFree` when the structured hints are applied separately, so the
+ * classified tokens are not also demanded as literal text.
+ */
+export function toLikePatterns(term: ParsedSearchTerm, onlyFree = false): string[] {
+  const source = onlyFree ? expandSynonyms(term.free) : term.variants;
+  const tokens = onlyFree ? term.free : term.tokens;
+  if (tokens.length === 0) return [];
+  return [...new Set(source.map((variant) => `%${variant.join("%")}%`))];
 }
 
 /** Builds a PostgreSQL `websearch_to_tsquery`-safe expression. */

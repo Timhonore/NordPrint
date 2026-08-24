@@ -51,9 +51,7 @@ export function WishlistButton({
         )}
       >
         <HeartIcon filled={active} className="size-4" />
-        {showLabel ? (
-          <span className="text-sm font-medium">{active ? "Gemt" : "Gem"}</span>
-        ) : null}
+        {showLabel ? <span className="text-sm font-medium">{active ? "Gemt" : "Gem"}</span> : null}
         <VisuallyHidden>
           {active ? `Fjern ${title} fra favoritter` : `Gem ${title} som favorit`}
         </VisuallyHidden>

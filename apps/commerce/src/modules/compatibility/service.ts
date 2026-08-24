@@ -106,7 +106,7 @@ class CompatibilityModuleService extends MedusaService({
   }): Promise<void> {
     if (input.status === "conditional" && !input.note) {
       throw new Error(
-        "En betinget kompatibilitet skal have en note, fx \"Passer hvis AMS Hub anvendes.\""
+        'En betinget kompatibilitet skal have en note, fx "Passer hvis AMS Hub anvendes."'
       );
     }
 

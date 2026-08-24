@@ -1,0 +1,267 @@
+# NordPrint — produktionsstak til en Linux VPS.
+#
+#   Caddy (443/80)
+#     ├── nordprint.dk        → storefront
+#     ├── api.nordprint.dk    → medusa-server
+#     └── admin.nordprint.dk  → medusa-server /app
+#
+#   medusa-worker             (ingen porte — kun jobs og subscribers)
+#   postgres, redis           (kun på det interne netværk)
+#
+# Alt kommer fra .env. Ingen hemmeligheder står i denne fil.
+# Se docs/deployment.md for hele proceduren.
+
+name: nordprint
+
+x-medusa-env: &medusa-env
+  NODE_ENV: production
+  DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+  REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+  JWT_SECRET: ${JWT_SECRET}
+  COOKIE_SECRET: ${COOKIE_SECRET}
+  STORE_CORS: ${STORE_CORS}
+  ADMIN_CORS: ${ADMIN_CORS}
+  AUTH_CORS: ${AUTH_CORS}
+  MEDUSA_BACKEND_URL: ${MEDUSA_BACKEND_URL}
+  # Object storage (Cloudflare R2 i produktion).
+  S3_BUCKET: ${S3_BUCKET}
+  S3_ENDPOINT: ${S3_ENDPOINT}
+  S3_REGION: ${S3_REGION:-auto}
+  S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID}
+  S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY}
+  S3_FILE_URL: ${S3_FILE_URL}
+  # Betaling og fragt. Mangler de, deaktiveres udbyderen — den falder ikke
+  # tilbage på en stub, for en stub må aldrig godkende en rigtig betaling.
+  VIPPS_MOBILEPAY_CLIENT_ID: ${VIPPS_MOBILEPAY_CLIENT_ID:-}
+  VIPPS_MOBILEPAY_CLIENT_SECRET: ${VIPPS_MOBILEPAY_CLIENT_SECRET:-}
+  VIPPS_MOBILEPAY_SUBSCRIPTION_KEY: ${VIPPS_MOBILEPAY_SUBSCRIPTION_KEY:-}
+  VIPPS_MOBILEPAY_MSN: ${VIPPS_MOBILEPAY_MSN:-}
+  VIPPS_MOBILEPAY_API_URL: ${VIPPS_MOBILEPAY_API_URL:-}
+  VIPPS_MOBILEPAY_RETURN_URL: ${VIPPS_MOBILEPAY_RETURN_URL:-}
+  GLS_API_KEY: ${GLS_API_KEY:-}
+  DAO_API_KEY: ${DAO_API_KEY:-}
+  POSTNORD_API_KEY: ${POSTNORD_API_KEY:-}
+  RESEND_API_KEY: ${RESEND_API_KEY:-}
+  EMAIL_FROM: ${EMAIL_FROM:-NordPrint <ordre@nordprint.dk>}
+  SENTRY_DSN: ${SENTRY_DSN:-}
+  # Forretningsregler. Ændres her, ikke i koden.
+  NORDPRINT_FREE_SHIPPING_THRESHOLD: ${NORDPRINT_FREE_SHIPPING_THRESHOLD:-49900}
+  NORDPRINT_STOCK_LOW_AT_OR_BELOW: ${NORDPRINT_STOCK_LOW_AT_OR_BELOW:-5}
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./infrastructure/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    environment:
+      STOREFRONT_DOMAIN: ${STOREFRONT_DOMAIN}
+      API_DOMAIN: ${API_DOMAIN}
+      ADMIN_DOMAIN: ${ADMIN_DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL}
+    depends_on:
+      storefront:
+        condition: service_healthy
+      medusa-server:
+        condition: service_healthy
+    networks: [app]
+    logging: *logging
+
+  storefront:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/storefront.Dockerfile
+      args:
+        # Baked into the client bundle at build time, so they must be present
+        # here rather than only at runtime.
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL}
+        NEXT_PUBLIC_MEDUSA_BACKEND_URL: ${NEXT_PUBLIC_MEDUSA_BACKEND_URL}
+        NEXT_PUBLIC_ALLOW_INDEXING: ${NEXT_PUBLIC_ALLOW_INDEXING:-true}
+        NEXT_PUBLIC_IMAGE_HOSTNAME: ${NEXT_PUBLIC_IMAGE_HOSTNAME:-}
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: "8000"
+      HOSTNAME: "0.0.0.0"
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL}
+      NEXT_PUBLIC_MEDUSA_BACKEND_URL: ${NEXT_PUBLIC_MEDUSA_BACKEND_URL}
+      # Læses ved kørsel — en ny nøgle kræver ingen ny build.
+      MEDUSA_PUBLISHABLE_KEY: ${MEDUSA_PUBLISHABLE_KEY}
+      NORDPRINT_FREE_SHIPPING_THRESHOLD: ${NORDPRINT_FREE_SHIPPING_THRESHOLD:-49900}
+      NEWSLETTER_WEBHOOK_URL: ${NEWSLETTER_WEBHOOK_URL:-}
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:8000/api/kurv').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    depends_on:
+      medusa-server:
+        condition: service_healthy
+    networks: [app]
+    logging: *logging
+
+  # Serves HTTP and the admin. Scale this one for traffic.
+  medusa-server:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/commerce.Dockerfile
+    restart: always
+    environment:
+      <<: *medusa-env
+      MEDUSA_WORKER_MODE: server
+      PORT: "9000"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:9000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 45s
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    # `app` gives egress to Vipps MobilePay, Resend and R2; `data` gives
+    # access to PostgreSQL and Redis.
+    networks: [app, data]
+    logging: *logging
+
+  # Runs scheduled jobs and subscribers. Never exposed: it has no published
+  # ports and Caddy has no route to it.
+  medusa-worker:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/commerce.Dockerfile
+    restart: always
+    environment:
+      <<: *medusa-env
+      MEDUSA_WORKER_MODE: worker
+      # The admin bundle is not built or served here.
+      DISABLE_MEDUSA_ADMIN: "true"
+    healthcheck:
+      # The worker serves no HTTP, so liveness is "the process is up".
+      test: ["CMD-SHELL", "pgrep -f 'medusa' > /dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 45s
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      medusa-server:
+        # Migrations run from the server container; the worker waits so it
+        # never starts against a half-migrated schema.
+        condition: service_healthy
+    networks: [app, data]
+    logging: *logging
+
+  postgres:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_INITDB_ARGS: "--locale=da_DK.UTF-8 --encoding=UTF8"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./infrastructure/backup:/backup:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    # No published ports, and `data` is an internal network: PostgreSQL is
+    # unreachable from the host and has no route to the internet.
+    networks: [data]
+    logging: *logging
+
+  redis:
+    image: redis:7-alpine
+    restart: always
+    command: >
+      redis-server
+      --requirepass ${REDIS_PASSWORD}
+      --appendonly yes
+      --maxmemory 512mb
+      --maxmemory-policy noeviction
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [data]
+    logging: *logging
+
+  # Nightly PostgreSQL dump with off-site upload. See docs/backup-restore.md.
+  backup:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      PGHOST: postgres
+      PGUSER: ${POSTGRES_USER}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: ${POSTGRES_DB}
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-14}
+      BACKUP_S3_BUCKET: ${BACKUP_S3_BUCKET:-}
+      BACKUP_S3_ENDPOINT: ${BACKUP_S3_ENDPOINT:-}
+      BACKUP_S3_ACCESS_KEY_ID: ${BACKUP_S3_ACCESS_KEY_ID:-}
+      BACKUP_S3_SECRET_ACCESS_KEY: ${BACKUP_S3_SECRET_ACCESS_KEY:-}
+    volumes:
+      - ./infrastructure/backup:/opt/backup:ro
+      - backup-data:/backups
+    entrypoint: ["/bin/sh", "/opt/backup/entrypoint.sh"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    # Needs both: `data` to read the database, `app` to upload off-site.
+    networks: [app, data]
+    logging: *logging
+
+networks:
+  # Application traffic and outbound internet. Services here can reach
+  # Vipps MobilePay, Resend and Cloudflare R2.
+  app:
+
+  # Data plane. `internal: true` means no route to or from the internet, and
+  # with no published ports PostgreSQL and Redis are unreachable from the
+  # host as well. Only the services that genuinely need the database are
+  # attached to it.
+  data:
+    internal: true
+
+volumes:
+  postgres-data:
+  redis-data:
+  caddy-data:
+  caddy-config:
+  backup-data:

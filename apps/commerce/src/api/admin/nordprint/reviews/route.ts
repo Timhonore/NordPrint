@@ -3,10 +3,7 @@ import { REVIEW_MODULE } from "../../../../modules/review";
 import type ReviewModuleService from "../../../../modules/review/service";
 
 /** Review moderation queue. Nothing is published until someone approves it. */
-export async function GET(
-  req: AuthenticatedMedusaRequest,
-  res: MedusaResponse
-): Promise<void> {
+export async function GET(req: AuthenticatedMedusaRequest, res: MedusaResponse): Promise<void> {
   const status = typeof req.query.status === "string" ? req.query.status : "pending";
   const service = req.scope.resolve<ReviewModuleService>(REVIEW_MODULE);
 
@@ -18,10 +15,7 @@ export async function GET(
   res.json({ reviews });
 }
 
-export async function POST(
-  req: AuthenticatedMedusaRequest,
-  res: MedusaResponse
-): Promise<void> {
+export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse): Promise<void> {
   const body = (req.body ?? {}) as {
     id?: string;
     status?: "approved" | "rejected";

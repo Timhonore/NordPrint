@@ -86,7 +86,9 @@ export function MegaMenu({
               onFocus={() => (hasPanel ? open(entry.label) : setOpenLabel(null))}
               className={cn(
                 "inline-flex h-10 items-center rounded-lg px-3 text-[0.9375rem] font-medium transition-colors",
-                entry.highlight ? "text-amber hover:bg-amber/10" : "text-ink hover:bg-surface-muted",
+                entry.highlight
+                  ? "text-amber hover:bg-amber/10"
+                  : "text-ink hover:bg-surface-muted",
                 isOpen && (entry.highlight ? "bg-amber/10" : "bg-surface-muted")
               )}
             >

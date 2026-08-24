@@ -66,10 +66,7 @@ export async function ProductReviews({
                     <dt className="w-8 shrink-0 text-ink-faint tabular-nums">{stars} ★</dt>
                     <dd className="flex flex-1 items-center gap-2">
                       <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-muted">
-                        <span
-                          className="block h-full bg-amber"
-                          style={{ width: `${share}%` }}
-                        />
+                        <span className="block h-full bg-amber" style={{ width: `${share}%` }} />
                       </span>
                       <span className="w-5 shrink-0 text-right text-ink-faint tabular-nums">
                         {count}
@@ -86,9 +83,7 @@ export async function ProductReviews({
               <li key={review.id} className="border-b border-line pb-5 last:border-0">
                 <div className="flex flex-wrap items-center gap-2.5">
                   <StarRating value={review.rating} />
-                  {review.verifiedPurchase ? (
-                    <Badge tone="positive">Verificeret køb</Badge>
-                  ) : null}
+                  {review.verifiedPurchase ? <Badge tone="positive">Verificeret køb</Badge> : null}
                   <span className="text-xs text-ink-faint">
                     {new Intl.DateTimeFormat("da-DK", {
                       day: "numeric",

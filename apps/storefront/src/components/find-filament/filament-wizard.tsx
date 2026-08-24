@@ -2,12 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import type {
-  ColorFamily,
-  PrintIntent,
-  Priority,
-  Recommendation,
-} from "@nordprint/types";
+import type { ColorFamily, PrintIntent, Priority, Recommendation } from "@nordprint/types";
 import {
   COLOR_FAMILY_LABELS,
   PRINT_INTENTS,
@@ -87,9 +82,7 @@ export function FilamentWizard({
       const list = current[key] as string[];
       return {
         ...current,
-        [key]: list.includes(value)
-          ? list.filter((entry) => entry !== value)
-          : [...list, value],
+        [key]: list.includes(value) ? list.filter((entry) => entry !== value) : [...list, value],
       } as WizardState;
     });
   };
@@ -108,9 +101,14 @@ export function FilamentWizard({
 
       setResult((await response.json()) as typeof result);
       setStatus("idle");
-      setStep(4);
     } catch {
       setStatus("error");
+    } finally {
+      // Always advance. Staying on step 4 on failure meant the customer
+      // clicked "Vis anbefalinger" and nothing whatsoever happened — the
+      // error state lives in ResultView, and ResultView only renders on
+      // step 5. A dead button is worse than an error message.
+      setStep(4);
     }
   };
 
@@ -123,12 +121,7 @@ export function FilamentWizard({
 
   if (step === 4) {
     return (
-      <ResultView
-        result={result}
-        status={status}
-        onRestart={reset}
-        onBack={() => setStep(3)}
-      />
+      <ResultView result={result} status={status} onRestart={reset} onBack={() => setStep(3)} />
     );
   }
 
@@ -149,7 +142,7 @@ export function FilamentWizard({
                 : "border-line hover:bg-surface-muted"
             )}
           >
-            <span className="font-medium">Spring over</span>
+            <span className="font-medium">Jeg vælger ikke printer</span>
             <span className="mt-0.5 block text-ink-soft">
               Vis anbefalinger uden at tage hensyn til printer
             </span>
@@ -433,10 +426,7 @@ function ResultView({
                 <TechLabel className="mb-2 block">Derfor</TechLabel>
                 <ul className="space-y-1">
                   {entry.reasons.slice(0, 4).map((reason) => (
-                    <li
-                      key={reason.code}
-                      className="flex items-start gap-2 text-sm text-ink-soft"
-                    >
+                    <li key={reason.code} className="flex items-start gap-2 text-sm text-ink-soft">
                       <CheckIcon className="mt-0.5 size-3.5 shrink-0 text-positive" />
                       {reason.label}
                     </li>

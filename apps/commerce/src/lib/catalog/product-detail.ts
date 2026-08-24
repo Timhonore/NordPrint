@@ -102,9 +102,7 @@ export async function loadProductDetail(
       // Variant-specific imagery is resolved from the shared gallery by
       // colour name, so a spool photo follows its swatch.
       images: images.filter((image) =>
-        row.color_name
-          ? image.url.toLowerCase().includes(slugFragment(row.color_name))
-          : false
+        row.color_name ? image.url.toLowerCase().includes(slugFragment(row.color_name)) : false
       ),
       active: true,
       weightG: row.net_weight_g ?? null,
@@ -149,7 +147,8 @@ export async function loadProductDetail(
     subtitle: product.subtitle ?? null,
     description: product.description ?? null,
     thumbnail: product.thumbnail ?? images[0]?.url ?? null,
-    kind: (product.metadata?.kind as ProductDetail["kind"]) ?? (first.material ? "filament" : "other"),
+    kind:
+      (product.metadata?.kind as ProductDetail["kind"]) ?? (first.material ? "filament" : "other"),
     brand: first.brand_id
       ? {
           id: first.brand_id,
@@ -230,4 +229,7 @@ export async function loadVariantStock(
 }
 
 const slugFragment = (value: string): string =>
-  value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");

@@ -62,8 +62,7 @@ export function PreferencesProvider({
       removePrinter: store.removePrinter,
       setPrimaryPrinter: store.setPrimaryPrinter,
       toggleWishlist: store.toggleWishlist,
-      isWishlisted: (productId) =>
-        snapshot.wishlist.some((entry) => entry.productId === productId),
+      isWishlisted: (productId) => snapshot.wishlist.some((entry) => entry.productId === productId),
       toggleCompare: (handle) => store.toggleCompare(handle, maxCompare),
       isComparing: (handle) => snapshot.compare.includes(handle),
       clearCompare: store.clearCompare,
