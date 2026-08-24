@@ -121,7 +121,9 @@ test.describe("Kurv", () => {
 
     await page.goto("/kurv");
     await expect(page.getByRole("heading", { name: "Din kurv" })).toBeVisible();
-    await expect(page.getByText("Ordreoversigt")).toBeVisible();
+    // Rolle frem for tekst: den samme streng står også i RSC-payloadet i et
+    // <script>-tag, og en ren tekstsøgning rammer begge.
+    await expect(page.getByRole("heading", { name: "Ordreoversigt" })).toBeVisible();
 
     // Fri fragt-måleren er en konfigureret grænse, ikke en hardcoded tekst.
     await expect(page.getByText(/fri fragt/i).first()).toBeVisible();

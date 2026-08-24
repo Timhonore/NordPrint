@@ -25,7 +25,7 @@ export function PrinterPill({ className }: { className?: string }): React.JSX.El
         type="button"
         onClick={() => setOpen(true)}
         className={cn(
-          "inline-flex h-10 items-center gap-2 rounded-lg border border-line px-3 text-sm transition-colors hover:bg-surface-muted",
+          "inline-flex h-10 shrink-0 items-center gap-2 whitespace-nowrap rounded-lg border border-line px-3 text-sm transition-colors hover:bg-surface-muted",
           className
         )}
       >
